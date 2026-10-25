@@ -1,5 +1,12 @@
 fileFormatVersion: 2
 guid: 5aa4a8a612dad49be9980d4be3c6f23a
+AssetOrigin:
+  serializedVersion: 1
+  productId: 242192
+  packageName: Kids character Free
+  packageVersion: 1.0
+  assetPath: Assets/KidsCharacterFree/Materials/ShaderObject0.shadergraph
+  uploadId: 829392
 ScriptedImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -8,10 +15,3 @@ ScriptedImporter:
   assetBundleName: 
   assetBundleVariant: 
   script: {fileID: 11500000, guid: 625f186215c104763be7675aa2d941aa, type: 3}
-AssetOrigin:
-  serializedVersion: 1
-  productId: 242192
-  packageName: Kids character Free
-  packageVersion: 1.0
-  assetPath: Assets/KidsCharacterFree/Materials/ShaderObject0.shadergraph
-  uploadId: 829392

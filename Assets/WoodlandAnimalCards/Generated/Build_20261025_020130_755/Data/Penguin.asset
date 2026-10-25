@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f8258a1ba9a1a4d78808bc2a994fefd3, type: 3}
+  m_Name: Penguin
+  m_EditorClassIdentifier: 
+  species: Penguin
+  animalGroup: BIRD
+  greeting: Hi! I'm a penguin. I use my flippers to swim and my feathers to keep
+    warm.
+  portrait: {fileID: 0}
+  foodAnswer: I eat sea creatures such as fish, krill, and squid. My menu depends
+    on my species.
+  homeAnswer: Penguins live in the Southern Hemisphere. Some live in icy places,
+    but others live on warmer coasts.
+  funFactAnswer: I can't fly through the air, but my flippers make me a strong swimmer!

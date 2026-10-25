@@ -57,20 +57,39 @@ public class ThirdPersonCamera : MonoBehaviour
     private bool dragging;
     private Vector2 pointerStart;
 
+    // =========================================================
+    // NEW: CAMERA OWNERSHIP
+    // =========================================================
+
+    private bool cameraControlEnabled = true;
+
+    public bool CameraControlEnabled =>
+        cameraControlEnabled;
+
+    // =========================================================
+    // START
+    // =========================================================
+
     private void Start()
     {
         FindReferences();
 
         if (player == null)
         {
-            Debug.LogError("Camera could not find Player.");
+            Debug.LogError(
+                "Camera could not find Player."
+            );
+
             enabled = false;
             return;
         }
 
         if (firstPersonAnchor == null)
         {
-            Debug.LogError("FirstPersonAnchor is not assigned.");
+            Debug.LogError(
+                "FirstPersonAnchor is not assigned."
+            );
+
             enabled = false;
             return;
         }
@@ -83,8 +102,18 @@ public class ThirdPersonCamera : MonoBehaviour
         SetIntroCameraImmediately();
     }
 
+    // =========================================================
+    // LATE UPDATE
+    // =========================================================
+
     private void LateUpdate()
     {
+        // IMPORTANT:
+        // During animal conversation, ConversationCamera owns
+        // the Main Camera completely.
+        if (!cameraControlEnabled)
+            return;
+
         switch (mode)
         {
             case CameraMode.Intro:
@@ -101,9 +130,60 @@ public class ThirdPersonCamera : MonoBehaviour
         }
     }
 
-    // ---------------------------------------------------------
+    // =========================================================
+    // NEW: PAUSE CAMERA CONTROL
+    // =========================================================
+
+    public void PauseCameraControl()
+    {
+        cameraControlEnabled = false;
+
+        dragging = false;
+    }
+
+    // =========================================================
+    // NEW: RESUME CAMERA CONTROL
+    // =========================================================
+
+    public void ResumeCameraControl()
+    {
+        // Sync the internal first-person look angles with
+        // wherever ConversationCamera left the camera.
+        SyncLookToCurrentCamera();
+
+        dragging = false;
+
+        cameraControlEnabled = true;
+    }
+
+    // =========================================================
+    // NEW: SYNC FIRST PERSON ROTATION
+    // =========================================================
+
+    public void SyncLookToCurrentCamera()
+    {
+        Vector3 angles =
+            transform.eulerAngles;
+
+        yaw = angles.y;
+        pitch = angles.x;
+
+        if (pitch > 180f)
+        {
+            pitch -= 360f;
+        }
+
+        pitch =
+            Mathf.Clamp(
+                pitch,
+                minPitch,
+                maxPitch
+            );
+    }
+
+    // =========================================================
     // REFERENCES
-    // ---------------------------------------------------------
+    // =========================================================
 
     private void FindReferences()
     {
@@ -114,68 +194,91 @@ public class ThirdPersonCamera : MonoBehaviour
 
             if (playerObject != null)
             {
-                player = playerObject.transform;
+                player =
+                    playerObject.transform;
             }
         }
 
-        if (player != null && firstPersonAnchor == null)
+        if (
+            player != null &&
+            firstPersonAnchor == null
+        )
         {
             Transform foundAnchor =
-                player.Find("FirstPersonAnchor");
+                player.Find(
+                    "FirstPersonAnchor"
+                );
 
             if (foundAnchor != null)
             {
-                firstPersonAnchor = foundAnchor;
+                firstPersonAnchor =
+                    foundAnchor;
             }
         }
     }
 
-    // ---------------------------------------------------------
+    // =========================================================
     // INTRO CAMERA
-    // ---------------------------------------------------------
+    // =========================================================
 
     private void SetIntroCameraImmediately()
     {
         Vector3 cameraPosition =
-            player.position + introOffset;
+            player.position +
+            introOffset;
 
         Vector3 lookPoint =
-            player.position + introLookOffset;
+            player.position +
+            introLookOffset;
 
-        transform.position = cameraPosition;
-        transform.LookAt(lookPoint);
+        transform.position =
+            cameraPosition;
+
+        transform.LookAt(
+            lookPoint
+        );
     }
 
     private void UpdateIntro()
     {
-        introTimer += Time.deltaTime;
+        introTimer +=
+            Time.deltaTime;
 
-        // Follow ONLY Player position.
-        // Do not use Player rotation.
         Vector3 desiredPosition =
-            player.position + introOffset;
+            player.position +
+            introOffset;
 
         Vector3 lookPoint =
-            player.position + introLookOffset;
+            player.position +
+            introLookOffset;
 
-        transform.position = desiredPosition;
-        transform.LookAt(lookPoint);
+        transform.position =
+            desiredPosition;
 
-        if (introTimer >= introDuration)
+        transform.LookAt(
+            lookPoint
+        );
+
+        if (
+            introTimer >=
+            introDuration
+        )
         {
             BeginTransition();
         }
     }
 
-    // ---------------------------------------------------------
+    // =========================================================
     // TRANSITION
-    // ---------------------------------------------------------
+    // =========================================================
 
     private void BeginTransition()
     {
-        mode = CameraMode.Transition;
+        mode =
+            CameraMode.Transition;
 
-        transitionTimer = 0f;
+        transitionTimer =
+            0f;
 
         transitionStartPosition =
             transform.position;
@@ -186,7 +289,8 @@ public class ThirdPersonCamera : MonoBehaviour
 
     private void UpdateTransition()
     {
-        transitionTimer += Time.deltaTime;
+        transitionTimer +=
+            Time.deltaTime;
 
         float t =
             Mathf.Clamp01(
@@ -225,30 +329,23 @@ public class ThirdPersonCamera : MonoBehaviour
         }
     }
 
-    // ---------------------------------------------------------
+    // =========================================================
     // FIRST PERSON
-    // ---------------------------------------------------------
+    // =========================================================
 
     private void EnterFirstPerson()
     {
-        mode = CameraMode.FirstPerson;
+        mode =
+            CameraMode.FirstPerson;
 
         if (characterModel != null)
         {
-            characterModel.SetActive(false);
+            characterModel.SetActive(
+                false
+            );
         }
 
-        Vector3 angles =
-            transform.eulerAngles;
-
-        yaw = angles.y;
-
-        pitch = angles.x;
-
-        if (pitch > 180f)
-        {
-            pitch -= 360f;
-        }
+        SyncLookToCurrentCamera();
     }
 
     private void UpdateFirstPerson()
@@ -256,7 +353,6 @@ public class ThirdPersonCamera : MonoBehaviour
         HandleMouseLook();
         HandleTouchLook();
 
-        // Camera position always follows eye anchor.
         transform.position =
             firstPersonAnchor.position;
 
@@ -268,9 +364,9 @@ public class ThirdPersonCamera : MonoBehaviour
             );
     }
 
-    // ---------------------------------------------------------
+    // =========================================================
     // MOUSE LOOK
-    // ---------------------------------------------------------
+    // =========================================================
 
     private void HandleMouseLook()
     {
@@ -281,16 +377,21 @@ public class ThirdPersonCamera : MonoBehaviour
             Mouse.current.position.ReadValue();
 
         if (
-            Mouse.current.leftButton
+            Mouse.current
+                .leftButton
                 .wasPressedThisFrame
         )
         {
-            pointerStart = position;
-            dragging = false;
+            pointerStart =
+                position;
+
+            dragging =
+                false;
         }
 
         if (
-            Mouse.current.leftButton
+            Mouse.current
+                .leftButton
                 .isPressed
         )
         {
@@ -307,14 +408,17 @@ public class ThirdPersonCamera : MonoBehaviour
                     dragThresholdPixels
                 )
                 {
-                    dragging = true;
+                    dragging =
+                        true;
                 }
             }
 
             if (dragging)
             {
                 Vector2 delta =
-                    Mouse.current.delta.ReadValue();
+                    Mouse.current
+                        .delta
+                        .ReadValue();
 
                 yaw +=
                     delta.x *
@@ -334,21 +438,26 @@ public class ThirdPersonCamera : MonoBehaviour
         }
 
         if (
-            Mouse.current.leftButton
+            Mouse.current
+                .leftButton
                 .wasReleasedThisFrame
         )
         {
-            dragging = false;
+            dragging =
+                false;
         }
 
         // Right mouse always looks around.
         if (
-            Mouse.current.rightButton
+            Mouse.current
+                .rightButton
                 .isPressed
         )
         {
             Vector2 delta =
-                Mouse.current.delta.ReadValue();
+                Mouse.current
+                    .delta
+                    .ReadValue();
 
             yaw +=
                 delta.x *
@@ -367,9 +476,9 @@ public class ThirdPersonCamera : MonoBehaviour
         }
     }
 
-    // ---------------------------------------------------------
+    // =========================================================
     // TOUCH LOOK
-    // ---------------------------------------------------------
+    // =========================================================
 
     private void HandleTouchLook()
     {
@@ -393,8 +502,11 @@ public class ThirdPersonCamera : MonoBehaviour
                 .wasPressedThisFrame
         )
         {
-            pointerStart = position;
-            dragging = false;
+            pointerStart =
+                position;
+
+            dragging =
+                false;
         }
 
         if (
@@ -414,7 +526,8 @@ public class ThirdPersonCamera : MonoBehaviour
                     dragThresholdPixels
                 )
                 {
-                    dragging = true;
+                    dragging =
+                        true;
                 }
             }
 
@@ -445,7 +558,8 @@ public class ThirdPersonCamera : MonoBehaviour
                 .wasReleasedThisFrame
         )
         {
-            dragging = false;
+            dragging =
+                false;
         }
     }
 }

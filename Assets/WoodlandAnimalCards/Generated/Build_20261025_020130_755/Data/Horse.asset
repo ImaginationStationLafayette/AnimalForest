@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f8258a1ba9a1a4d78808bc2a994fefd3, type: 3}
+  m_Name: Horse
+  m_EditorClassIdentifier: 
+  species: Horse
+  animalGroup: MAMMAL
+  greeting: Hi! I'm a horse. I graze on grass and use my long legs to run across
+    open spaces.
+  portrait: {fileID: 0}
+  foodAnswer: I mostly eat grass and hay. I'm a herbivore, which means I eat plants.
+  homeAnswer: Horses often live in pastures, with shelter or stables. Wild horses
+    live in open landscapes.
+  funFactAnswer: I can doze while standing, but I also lie down to sleep deeply.

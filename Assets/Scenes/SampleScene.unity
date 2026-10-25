@@ -4832,6 +4832,11 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 61838991}
   m_Mesh: {fileID: -7387926931826281997, guid: b50dd34feb8fa1b4fa5aa0a7d2271066, type: 3}
+--- !u!1 &62876705 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 8865353404023235856, guid: 3aee741d0157841f08453c31c31f1d67, type: 3}
+  m_PrefabInstance: {fileID: 1636717869}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &62912372
 GameObject:
   m_ObjectHideFlags: 0
@@ -16936,6 +16941,7 @@ MonoBehaviour:
   habitat: Open Plains & Pastoral Meadows
   funFact: Horses can sleep both lying down and standing up! They communicate their
     mood using their ears, eyes, and nostrils.
+  interactionPoint: {fileID: 0}
   interactionRadius: 3.2
   billboardOffset: {x: 0, y: 3.9, z: 0}
 --- !u!95 &233486715
@@ -23425,6 +23431,7 @@ GameObject:
   - component: {fileID: 330585544}
   - component: {fileID: 330585547}
   - component: {fileID: 330585548}
+  - component: {fileID: 330585549}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -23574,6 +23581,27 @@ MonoBehaviour:
   minPitch: -10
   maxPitch: 60
   dragThresholdPixels: 18
+--- !u!114 &330585549
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 330585543}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6591c38a17ace4d23969999c3378f01e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  normalCamera: {fileID: 0}
+  firstPersonAnchor: {fileID: 0}
+  minimumCameraDistance: 2.5
+  maximumCameraDistance: 7
+  sizeDistanceMultiplier: 1.15
+  lookHeightPercent: 0.8
+  rightSideFraming: 0.55
+  moveSpeed: 5
+  returnSpeed: 6
 --- !u!1 &331643995
 GameObject:
   m_ObjectHideFlags: 0
@@ -27152,6 +27180,17 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 389242417}
   m_Mesh: {fileID: -1806810134458854372, guid: 7ed75b99c26237b4d844c1581c5da1b2, type: 3}
+--- !u!114 &389577972 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 2566729048267752442, guid: 3aee741d0157841f08453c31c31f1d67, type: 3}
+  m_PrefabInstance: {fileID: 1636717869}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &391171852
 GameObject:
   m_ObjectHideFlags: 0
@@ -30494,6 +30533,7 @@ MonoBehaviour:
   habitat: Coastal Waters & Ice Edges
   funFact: Penguins cannot fly in the air, but their flippers allow them to 'fly'
     underwater with astonishing speed and agility!
+  interactionPoint: {fileID: 0}
   interactionRadius: 3.2
   billboardOffset: {x: 0, y: 2.7, z: 0}
 --- !u!95 &435527565
@@ -41148,16 +41188,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c4f23bc38e08e446198a9b1ac1dee709, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ExhibitHUD
-  interactionPromptTex: {fileID: 2800000, guid: f20e7a6627c684e67a6c0b42ac2ff32e, type: 3}
-  micIconTex: {fileID: 2800000, guid: 9b4fd9b9f0e484269a2319b018a7bd2b, type: 3}
-  promptFontSize: 11
-  promptMinWidth: 175
-  promptMinHeight: 48
-  promptPaddingX: 54
-  promptPaddingY: 22
-  textOffset: {x: 0, y: -4.27}
-  microphoneSize: 64
-  microphoneBottomMargin: 40
+  conversationCard: {fileID: 62876705}
+  conversationCloseButton: {fileID: 1502130614}
+  speciesText: {fileID: 1646904650}
+  animalGroupText: {fileID: 1980132318}
+  dialogueText: {fileID: 389577972}
 --- !u!114 &606319603
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -67576,6 +67611,85 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1018588517}
   m_Mesh: {fileID: 672551834481701363, guid: 08eefc2f613faa34fbb717ac2142af0a, type: 3}
+--- !u!1 &1019886383
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1019886386}
+  - component: {fileID: 1019886385}
+  - component: {fileID: 1019886384}
+  m_Layer: 0
+  m_Name: EventSystem
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1019886384
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1019886383}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 01614664b831546d2ae94a42149d80ac, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_SendPointerHoverToParent: 1
+  m_MoveRepeatDelay: 0.5
+  m_MoveRepeatRate: 0.1
+  m_XRTrackingOrigin: {fileID: 0}
+  m_ActionsAsset: {fileID: -944628639613478452, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
+  m_PointAction: {fileID: -1654692200621890270, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
+  m_MoveAction: {fileID: -8784545083839296357, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
+  m_SubmitAction: {fileID: 392368643174621059, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
+  m_CancelAction: {fileID: 7727032971491509709, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
+  m_LeftClickAction: {fileID: 3001919216989983466, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
+  m_MiddleClickAction: {fileID: -2185481485913320682, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
+  m_RightClickAction: {fileID: -4090225696740746782, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
+  m_ScrollWheelAction: {fileID: 6240969308177333660, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
+  m_TrackedDevicePositionAction: {fileID: 6564999863303420839, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
+  m_TrackedDeviceOrientationAction: {fileID: 7970375526676320489, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
+  m_DeselectOnBackgroundClick: 1
+  m_PointerBehavior: 0
+  m_CursorLockBehavior: 0
+  m_ScrollDeltaPerTick: 6
+--- !u!114 &1019886385
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1019886383}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 76c392e42b5098c458856cdf6ecaaaa1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_FirstSelected: {fileID: 0}
+  m_sendNavigationEvents: 1
+  m_DragThreshold: 10
+--- !u!4 &1019886386
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1019886383}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1021555862
 GameObject:
   m_ObjectHideFlags: 0
@@ -76511,6 +76625,7 @@ MonoBehaviour:
   habitat: Lush Woodlands & Meadows
   funFact: Deer can leap up to 10 feet high and run over 30 miles per hour! Their
     large ears can swivel in all directions to detect tiny sounds.
+  interactionPoint: {fileID: 0}
   interactionRadius: 3.2
   billboardOffset: {x: 0, y: 3.8, z: 0}
 --- !u!95 &1135419655
@@ -82588,7 +82703,7 @@ Transform:
   m_GameObject: {fileID: 1205042104}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: 0.9396926, z: -0, w: 0.34202015}
-  m_LocalPosition: {x: -14.2, y: 0.95, z: 13}
+  m_LocalPosition: {x: -14.2, y: 0.95, z: 17.57}
   m_LocalScale: {x: 2.2, y: 2.2, z: 2.2}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -82615,6 +82730,7 @@ MonoBehaviour:
   habitat: Barnyards & Grasslands
   funFact: Chickens have amazing memories and can recognize over 100 different faces
     of people and other animals!
+  interactionPoint: {fileID: 0}
   interactionRadius: 3.2
   billboardOffset: {x: 0, y: 1.6, z: 0}
 --- !u!95 &1205042109
@@ -89850,15 +89966,15 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1321952432}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0.64278764, z: -0, w: 0.7660445}
-  m_LocalPosition: {x: -2.2, y: 0.8, z: 11}
+  m_LocalRotation: {x: 0.029291838, y: -0.9791153, z: 0.0010705069, w: 0.20118172}
+  m_LocalPosition: {x: -2.0879135, y: 0.80029863, z: 10.881687}
   m_LocalScale: {x: 2.4, y: 2.4, z: 2.4}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 355242034}
   - {fileID: 1573007112}
   m_Father: {fileID: 791638423}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0.795, y: -156.8, z: -3.264}
 --- !u!114 &1321952434
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -89878,6 +89994,7 @@ MonoBehaviour:
   habitat: Sunny Woodlands & Gardens
   funFact: Cats can rotate their flexible ears 180 degrees and make over 100 different
     vocal sounds, compared to about 10 for dogs!
+  interactionPoint: {fileID: 0}
   interactionRadius: 3.2
   billboardOffset: {x: 0, y: 1.4, z: 0}
 --- !u!95 &1321952437
@@ -98245,6 +98362,7 @@ MonoBehaviour:
   habitat: Forests, Grasslands & Rocky Ridges
   funFact: Did you know? A tiger's stripes are on its skin as well as its fur! Also,
     tigers love swimming and often bathe in cool rivers.
+  interactionPoint: {fileID: 0}
   interactionRadius: 3.2
   billboardOffset: {x: 0, y: 3.2, z: 0}
 --- !u!95 &1425428171
@@ -103992,6 +104110,17 @@ Transform:
   - {fileID: 2046879592}
   m_Father: {fileID: 1861211052}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1502130614 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 5811860319504629038, guid: 3aee741d0157841f08453c31c31f1d67, type: 3}
+  m_PrefabInstance: {fileID: 1636717869}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1505995986
 GameObject:
   m_ObjectHideFlags: 0
@@ -110249,7 +110378,7 @@ Transform:
   m_GameObject: {fileID: 1586463279}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: 0.38268346, z: -0, w: 0.9238795}
-  m_LocalPosition: {x: -12.5, y: 0.97, z: 6}
+  m_LocalPosition: {x: -12.5, y: 0.97, z: 7.14}
   m_LocalScale: {x: 2, y: 2, z: 2}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -110276,6 +110405,7 @@ MonoBehaviour:
   habitat: Domestic & Farm Habitats
   funFact: A dog's sense of smell is up to 40 times stronger than humans! They are
     known as loyal companions and love learning new tricks.
+  interactionPoint: {fileID: 0}
   interactionRadius: 3.2
   billboardOffset: {x: 0, y: 2.2, z: 0}
 --- !u!95 &1586463284
@@ -113410,6 +113540,187 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1634332753}
   m_Mesh: {fileID: 1803037753767285088, guid: 46d171de72518e343891c4b4c03e5103, type: 3}
+--- !u!1001 &1636717869
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 180113941486859336, guid: 3aee741d0157841f08453c31c31f1d67, type: 3}
+      propertyPath: m_fontColor32.rgba
+      value: 4279772952
+      objectReference: {fileID: 0}
+    - target: {fileID: 180113941486859336, guid: 3aee741d0157841f08453c31c31f1d67, type: 3}
+      propertyPath: m_TextStyleHashCode
+      value: -1183493901
+      objectReference: {fileID: 0}
+    - target: {fileID: 1397803731501336969, guid: 3aee741d0157841f08453c31c31f1d67, type: 3}
+      propertyPath: m_AdditionalShaderChannelsFlag
+      value: 25
+      objectReference: {fileID: 0}
+    - target: {fileID: 1533855814937897694, guid: 3aee741d0157841f08453c31c31f1d67, type: 3}
+      propertyPath: m_fontColor32.rgba
+      value: 4291417039
+      objectReference: {fileID: 0}
+    - target: {fileID: 1533855814937897694, guid: 3aee741d0157841f08453c31c31f1d67, type: 3}
+      propertyPath: m_TextStyleHashCode
+      value: -1183493901
+      objectReference: {fileID: 0}
+    - target: {fileID: 1615847418950850507, guid: 3aee741d0157841f08453c31c31f1d67, type: 3}
+      propertyPath: m_fontColor32.rgba
+      value: 4279772952
+      objectReference: {fileID: 0}
+    - target: {fileID: 1615847418950850507, guid: 3aee741d0157841f08453c31c31f1d67, type: 3}
+      propertyPath: m_TextStyleHashCode
+      value: -1183493901
+      objectReference: {fileID: 0}
+    - target: {fileID: 1796749569341595459, guid: 3aee741d0157841f08453c31c31f1d67, type: 3}
+      propertyPath: m_fontColor32.rgba
+      value: 4279772952
+      objectReference: {fileID: 0}
+    - target: {fileID: 1796749569341595459, guid: 3aee741d0157841f08453c31c31f1d67, type: 3}
+      propertyPath: m_TextStyleHashCode
+      value: -1183493901
+      objectReference: {fileID: 0}
+    - target: {fileID: 2566729048267752442, guid: 3aee741d0157841f08453c31c31f1d67, type: 3}
+      propertyPath: m_fontColor32.rgba
+      value: 4279772952
+      objectReference: {fileID: 0}
+    - target: {fileID: 2566729048267752442, guid: 3aee741d0157841f08453c31c31f1d67, type: 3}
+      propertyPath: m_TextStyleHashCode
+      value: -1183493901
+      objectReference: {fileID: 0}
+    - target: {fileID: 3307663173353916778, guid: 3aee741d0157841f08453c31c31f1d67, type: 3}
+      propertyPath: m_Name
+      value: AnimalConversationCard
+      objectReference: {fileID: 0}
+    - target: {fileID: 3307663173353916778, guid: 3aee741d0157841f08453c31c31f1d67, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5274064822174535304, guid: 3aee741d0157841f08453c31c31f1d67, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5274064822174535304, guid: 3aee741d0157841f08453c31c31f1d67, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5499899337265396960, guid: 3aee741d0157841f08453c31c31f1d67, type: 3}
+      propertyPath: m_fontColor32.rgba
+      value: 4279772952
+      objectReference: {fileID: 0}
+    - target: {fileID: 5499899337265396960, guid: 3aee741d0157841f08453c31c31f1d67, type: 3}
+      propertyPath: m_TextStyleHashCode
+      value: -1183493901
+      objectReference: {fileID: 0}
+    - target: {fileID: 8164225939651868916, guid: 3aee741d0157841f08453c31c31f1d67, type: 3}
+      propertyPath: m_fontColor32.rgba
+      value: 4280827435
+      objectReference: {fileID: 0}
+    - target: {fileID: 8164225939651868916, guid: 3aee741d0157841f08453c31c31f1d67, type: 3}
+      propertyPath: m_TextStyleHashCode
+      value: -1183493901
+      objectReference: {fileID: 0}
+    - target: {fileID: 8250267606039613421, guid: 3aee741d0157841f08453c31c31f1d67, type: 3}
+      propertyPath: m_Pivot.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8250267606039613421, guid: 3aee741d0157841f08453c31c31f1d67, type: 3}
+      propertyPath: m_Pivot.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8250267606039613421, guid: 3aee741d0157841f08453c31c31f1d67, type: 3}
+      propertyPath: m_AnchorMax.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8250267606039613421, guid: 3aee741d0157841f08453c31c31f1d67, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8250267606039613421, guid: 3aee741d0157841f08453c31c31f1d67, type: 3}
+      propertyPath: m_AnchorMin.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8250267606039613421, guid: 3aee741d0157841f08453c31c31f1d67, type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8250267606039613421, guid: 3aee741d0157841f08453c31c31f1d67, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8250267606039613421, guid: 3aee741d0157841f08453c31c31f1d67, type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8250267606039613421, guid: 3aee741d0157841f08453c31c31f1d67, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8250267606039613421, guid: 3aee741d0157841f08453c31c31f1d67, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8250267606039613421, guid: 3aee741d0157841f08453c31c31f1d67, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8250267606039613421, guid: 3aee741d0157841f08453c31c31f1d67, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8250267606039613421, guid: 3aee741d0157841f08453c31c31f1d67, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8250267606039613421, guid: 3aee741d0157841f08453c31c31f1d67, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8250267606039613421, guid: 3aee741d0157841f08453c31c31f1d67, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8250267606039613421, guid: 3aee741d0157841f08453c31c31f1d67, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8250267606039613421, guid: 3aee741d0157841f08453c31c31f1d67, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8250267606039613421, guid: 3aee741d0157841f08453c31c31f1d67, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8250267606039613421, guid: 3aee741d0157841f08453c31c31f1d67, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8250267606039613421, guid: 3aee741d0157841f08453c31c31f1d67, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8808387336392229659, guid: 3aee741d0157841f08453c31c31f1d67, type: 3}
+      propertyPath: m_fontColor32.rgba
+      value: 4279772952
+      objectReference: {fileID: 0}
+    - target: {fileID: 8808387336392229659, guid: 3aee741d0157841f08453c31c31f1d67, type: 3}
+      propertyPath: m_TextStyleHashCode
+      value: -1183493901
+      objectReference: {fileID: 0}
+    - target: {fileID: 8865353404023235856, guid: 3aee741d0157841f08453c31c31f1d67, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 3aee741d0157841f08453c31c31f1d67, type: 3}
 --- !u!1 &1637420346
 GameObject:
   m_ObjectHideFlags: 0
@@ -114366,6 +114677,17 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1646874571}
   m_Mesh: {fileID: 2298263045900952535, guid: 324d33f3ad1481c4e8ba55d696fe64d9, type: 3}
+--- !u!114 &1646904650 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 1796749569341595459, guid: 3aee741d0157841f08453c31c31f1d67, type: 3}
+  m_PrefabInstance: {fileID: 1636717869}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1648023730
 GameObject:
   m_ObjectHideFlags: 0
@@ -139148,6 +139470,17 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1978487540}
   m_Mesh: {fileID: -3547404156773701478, guid: 7ea25f0f06a711d48a2bd754e29ecb0e, type: 3}
+--- !u!114 &1980132318 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 8164225939651868916, guid: 3aee741d0157841f08453c31c31f1d67, type: 3}
+  m_PrefabInstance: {fileID: 1636717869}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1982809648
 GameObject:
   m_ObjectHideFlags: 0
@@ -152187,3 +152520,5 @@ SceneRoots:
   - {fileID: 620836962}
   - {fileID: 1718589798}
   - {fileID: 1157650486}
+  - {fileID: 1636717869}
+  - {fileID: 1019886386}

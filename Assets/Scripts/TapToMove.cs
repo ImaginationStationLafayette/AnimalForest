@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.Controls;
 
 [RequireComponent(typeof(NavMeshAgent))]
 public class TapToMove : MonoBehaviour
@@ -18,10 +19,12 @@ public class TapToMove : MonoBehaviour
     private NavMeshAgent agent;
     private ExhibitHUD hud;
 
+    // Mouse tap state
     private Vector2 mousePressStart;
     private float mouseMaxMovement;
     private bool mousePressActive;
 
+    // Touch tap state
     private Vector2 touchPressStart;
     private float touchMaxMovement;
     private bool touchPressActive;
@@ -34,6 +37,10 @@ public class TapToMove : MonoBehaviour
 
     private static readonly int SpeedParameter =
         Animator.StringToHash("Speed");
+
+    // =========================================================
+    // AWAKE
+    // =========================================================
 
     private void Awake()
     {
@@ -51,6 +58,10 @@ public class TapToMove : MonoBehaviour
         }
     }
 
+    // =========================================================
+    // UPDATE
+    // =========================================================
+
     private void Update()
     {
         HandleMouse();
@@ -58,17 +69,20 @@ public class TapToMove : MonoBehaviour
         UpdateAnimation();
     }
 
+    // =========================================================
+    // MOUSE
+    // =========================================================
+
     private void HandleMouse()
     {
         if (Mouse.current == null)
             return;
 
-        Vector2 position =
-            Mouse.current.position.ReadValue();
-
         if (Mouse.current.leftButton.wasPressedThisFrame)
         {
-            mousePressStart = position;
+            mousePressStart =
+                Mouse.current.position.ReadValue();
+
             mouseMaxMovement = 0f;
             mousePressActive = true;
         }
@@ -78,17 +92,19 @@ public class TapToMove : MonoBehaviour
             Mouse.current.leftButton.isPressed
         )
         {
+            Vector2 currentPosition =
+                Mouse.current.position.ReadValue();
+
             float movement =
                 Vector2.Distance(
                     mousePressStart,
-                    position
+                    currentPosition
                 );
 
-            mouseMaxMovement =
-                Mathf.Max(
-                    mouseMaxMovement,
-                    movement
-                );
+            if (movement > mouseMaxMovement)
+            {
+                mouseMaxMovement = movement;
+            }
         }
 
         if (
@@ -96,29 +112,35 @@ public class TapToMove : MonoBehaviour
             Mouse.current.leftButton.wasReleasedThisFrame
         )
         {
-            if (mouseMaxMovement < tapThresholdPixels)
-            {
-                TryMove(position);
-            }
+            Vector2 releasePosition =
+                Mouse.current.position.ReadValue();
 
             mousePressActive = false;
+
+            if (mouseMaxMovement > tapThresholdPixels)
+                return;
+
+            TryTap(releasePosition);
         }
     }
+
+    // =========================================================
+    // TOUCH
+    // =========================================================
 
     private void HandleTouch()
     {
         if (Touchscreen.current == null)
             return;
 
-        var touch =
+        TouchControl touch =
             Touchscreen.current.primaryTouch;
-
-        Vector2 position =
-            touch.position.ReadValue();
 
         if (touch.press.wasPressedThisFrame)
         {
-            touchPressStart = position;
+            touchPressStart =
+                touch.position.ReadValue();
+
             touchMaxMovement = 0f;
             touchPressActive = true;
         }
@@ -128,17 +150,19 @@ public class TapToMove : MonoBehaviour
             touch.press.isPressed
         )
         {
+            Vector2 currentPosition =
+                touch.position.ReadValue();
+
             float movement =
                 Vector2.Distance(
                     touchPressStart,
-                    position
+                    currentPosition
                 );
 
-            touchMaxMovement =
-                Mathf.Max(
-                    touchMaxMovement,
-                    movement
-                );
+            if (movement > touchMaxMovement)
+            {
+                touchMaxMovement = movement;
+            }
         }
 
         if (
@@ -146,22 +170,28 @@ public class TapToMove : MonoBehaviour
             touch.press.wasReleasedThisFrame
         )
         {
-            if (touchMaxMovement < tapThresholdPixels)
-            {
-                TryMove(position);
-            }
+            Vector2 releasePosition =
+                touch.position.ReadValue();
 
             touchPressActive = false;
+
+            if (touchMaxMovement > tapThresholdPixels)
+                return;
+
+            TryTap(releasePosition);
         }
     }
 
-    private void TryMove(Vector2 screenPosition)
+    // =========================================================
+    // TAP
+    // =========================================================
+
+    private void TryTap(Vector2 screenPosition)
     {
         if (mainCamera == null)
             return;
 
-        // While talking to an animal, ground taps
-        // should not move the player away.
+        // No world interaction while a conversation is open.
         if (
             hud != null &&
             hud.IsConversationActive
@@ -188,7 +218,7 @@ public class TapToMove : MonoBehaviour
             return;
         }
 
-        // Ignore clicks on the player's own hierarchy.
+        // Ignore the player's own collider.
         if (
             hit.transform == transform ||
             hit.transform.IsChildOf(transform)
@@ -197,79 +227,245 @@ public class TapToMove : MonoBehaviour
             return;
         }
 
-        // Did we tap an animal?
-        AnimalExhibit tappedExhibit =
-            hit.collider
-                .GetComponentInParent<AnimalExhibit>();
+        // =====================================================
+        // ANIMAL TAP
+        // =====================================================
 
-        if (tappedExhibit != null)
+        AnimalExhibit animal =
+            hit.collider.GetComponentInParent<AnimalExhibit>();
+
+        if (animal != null)
         {
-            // Already close enough:
-            // start the conversation.
-            if (tappedExhibit.PlayerInRange)
-            {
-                if (hud != null)
-                {
-                    hud.StartConversation(
-                        tappedExhibit
-                    );
-                }
+            TryTalkToAnimal(
+                animal,
+                hit.collider
+            );
 
-                return;
+            return;
+        }
+
+        // =====================================================
+        // NORMAL GROUND TAP
+        // =====================================================
+
+        MoveToGround(
+            hit.point
+        );
+    }
+
+    // =========================================================
+    // TALK TO ANIMAL
+    // =========================================================
+
+    private void TryTalkToAnimal(
+        AnimalExhibit animal,
+        Collider clickedCollider
+    )
+    {
+        if (animal == null)
+            return;
+
+        float distance =
+            GetDistanceToAnimal(
+                animal
+            );
+
+        // Only open the conversation if we're close enough.
+        if (
+            distance <=
+            animal.InteractionRadius
+        )
+        {
+            // Completely clear current movement.
+            if (agent != null)
+            {
+                agent.ResetPath();
+                agent.velocity = Vector3.zero;
             }
 
-            // Animal is farther away:
-            // walk toward it.
-            if (
-                NavMesh.SamplePosition(
-                    hit.point,
-                    out NavMeshHit animalNavHit,
-                    navMeshSampleDistance + 2f,
-                    NavMesh.AllAreas
-                )
-            )
+            if (hud != null)
             {
-                agent.isStopped = false;
-
-                agent.SetDestination(
-                    animalNavHit.position
+                hud.StartConversation(
+                    animal
                 );
-
-                return;
             }
         }
 
-        // Normal ground tap.
+        // IMPORTANT:
+        // If we're too far away, do NOTHING.
+        //
+        // We deliberately do not create a NavMesh path
+        // toward the animal here.
+        //
+        // This removes the old "pending animal" state
+        // that was causing the player to become stuck.
+    }
+
+    // =========================================================
+    // DISTANCE TO ACTUAL ANIMAL BODY
+    // =========================================================
+
+    private float GetDistanceToAnimal(
+        AnimalExhibit animal
+    )
+    {
+        Collider[] colliders =
+            animal.GetComponentsInChildren<Collider>();
+
         if (
-            NavMesh.SamplePosition(
-                hit.point,
+            colliders == null ||
+            colliders.Length == 0
+        )
+        {
+            Vector3 playerPosition =
+                transform.position;
+
+            Vector3 animalPosition =
+                animal.transform.position;
+
+            playerPosition.y = 0f;
+            animalPosition.y = 0f;
+
+            return Vector3.Distance(
+                playerPosition,
+                animalPosition
+            );
+        }
+
+        float nearestDistance =
+            float.MaxValue;
+
+        foreach (Collider col in colliders)
+        {
+            if (col == null)
+                continue;
+
+            if (!col.enabled)
+                continue;
+
+            Vector3 playerPosition =
+                transform.position;
+
+            Vector3 closestPoint =
+                col.ClosestPoint(
+                    playerPosition
+                );
+
+            playerPosition.y = 0f;
+            closestPoint.y = 0f;
+
+            float distance =
+                Vector3.Distance(
+                    playerPosition,
+                    closestPoint
+                );
+
+            if (distance < nearestDistance)
+            {
+                nearestDistance =
+                    distance;
+            }
+        }
+
+        return nearestDistance;
+    }
+
+    // =========================================================
+    // NORMAL MOVEMENT
+    // =========================================================
+
+    private void MoveToGround(
+        Vector3 worldPosition
+    )
+    {
+        if (agent == null)
+            return;
+
+        if (
+            !NavMesh.SamplePosition(
+                worldPosition,
                 out NavMeshHit navHit,
                 navMeshSampleDistance,
                 NavMesh.AllAreas
             )
         )
         {
-            agent.isStopped = false;
-
-            agent.SetDestination(
-                navHit.position
-            );
+            return;
         }
-    }
 
-    private void UpdateAnimation()
-    {
+        NavMeshPath path =
+            new NavMeshPath();
+
+        bool foundPath =
+            agent.CalculatePath(
+                navHit.position,
+                path
+            );
+
+        if (!foundPath)
+            return;
+
         if (
-            animator == null ||
-            !animator.gameObject.activeInHierarchy ||
-            !animator.isActiveAndEnabled
+            path.status !=
+            NavMeshPathStatus.PathComplete
         )
         {
             return;
         }
 
+        // Always start ground movement from a clean state.
+        agent.ResetPath();
+        agent.isStopped = false;
+
+        agent.SetPath(
+            path
+        );
+    }
+
+    // =========================================================
+    // RESET AFTER CONVERSATION
+    // =========================================================
+
+    public void ResetInteractionState()
+    {
+        // Clear unfinished click/touch state.
+        mousePressActive = false;
+        touchPressActive = false;
+
+        mouseMaxMovement = 0f;
+        touchMaxMovement = 0f;
+
+        if (
+            agent != null &&
+            agent.enabled
+        )
+        {
+            // Completely remove anything left from
+            // the previous conversation.
+            agent.ResetPath();
+            agent.velocity = Vector3.zero;
+            agent.isStopped = false;
+        }
+    }
+
+    // =========================================================
+    // ANIMATION
+    // =========================================================
+
+    private void UpdateAnimation()
+    {
+        if (animator == null)
+            return;
+
+        if (!animator.isActiveAndEnabled)
+            return;
+
         bool moving =
-            agent.velocity.sqrMagnitude > 0.05f;
+            agent != null &&
+            agent.enabled &&
+            !agent.isStopped &&
+            agent.velocity.sqrMagnitude >
+            0.05f;
 
         if (moving)
         {
@@ -278,21 +474,10 @@ public class TapToMove : MonoBehaviour
                 1f
             );
 
-            AnimatorStateInfo state =
-                animator.GetCurrentAnimatorStateInfo(0);
-
-            if (
-                state.fullPathHash != MoveState &&
-                !animator.IsInTransition(0)
-            )
-            {
-                animator.CrossFade(
-                    MoveState,
-                    0.12f,
-                    0,
-                    0
-                );
-            }
+            animator.CrossFade(
+                MoveState,
+                0.15f
+            );
         }
         else
         {
@@ -301,21 +486,10 @@ public class TapToMove : MonoBehaviour
                 0f
             );
 
-            AnimatorStateInfo state =
-                animator.GetCurrentAnimatorStateInfo(0);
-
-            if (
-                state.fullPathHash != IdleState &&
-                !animator.IsInTransition(0)
-            )
-            {
-                animator.CrossFade(
-                    IdleState,
-                    0.2f,
-                    0,
-                    0
-                );
-            }
+            animator.CrossFade(
+                IdleState,
+                0.15f
+            );
         }
     }
 }
