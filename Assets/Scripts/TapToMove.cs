@@ -16,6 +16,7 @@ public class TapToMove : MonoBehaviour
     [SerializeField] private float navMeshSampleDistance = 2f;
 
     private NavMeshAgent agent;
+    private ExhibitHUD hud;
 
     private Vector2 mousePressStart;
     private float mouseMaxMovement;
@@ -37,6 +38,7 @@ public class TapToMove : MonoBehaviour
     private void Awake()
     {
         agent = GetComponent<NavMeshAgent>();
+        hud = GetComponent<ExhibitHUD>();
 
         if (mainCamera == null)
         {
@@ -71,8 +73,10 @@ public class TapToMove : MonoBehaviour
             mousePressActive = true;
         }
 
-        if (mousePressActive &&
-            Mouse.current.leftButton.isPressed)
+        if (
+            mousePressActive &&
+            Mouse.current.leftButton.isPressed
+        )
         {
             float movement =
                 Vector2.Distance(
@@ -87,8 +91,10 @@ public class TapToMove : MonoBehaviour
                 );
         }
 
-        if (mousePressActive &&
-            Mouse.current.leftButton.wasReleasedThisFrame)
+        if (
+            mousePressActive &&
+            Mouse.current.leftButton.wasReleasedThisFrame
+        )
         {
             if (mouseMaxMovement < tapThresholdPixels)
             {
@@ -117,8 +123,10 @@ public class TapToMove : MonoBehaviour
             touchPressActive = true;
         }
 
-        if (touchPressActive &&
-            touch.press.isPressed)
+        if (
+            touchPressActive &&
+            touch.press.isPressed
+        )
         {
             float movement =
                 Vector2.Distance(
@@ -133,8 +141,10 @@ public class TapToMove : MonoBehaviour
                 );
         }
 
-        if (touchPressActive &&
-            touch.press.wasReleasedThisFrame)
+        if (
+            touchPressActive &&
+            touch.press.wasReleasedThisFrame
+        )
         {
             if (touchMaxMovement < tapThresholdPixels)
             {
@@ -150,11 +160,13 @@ public class TapToMove : MonoBehaviour
         if (mainCamera == null)
             return;
 
-        // Check if ExhibitHUD is present and click is directly on the active mic icon
-        ExhibitHUD hud = GetComponent<ExhibitHUD>();
-        if (hud != null && hud.IsScreenPointOverMic(screenPosition))
+        // While talking to an animal, ground taps
+        // should not move the player away.
+        if (
+            hud != null &&
+            hud.IsConversationActive
+        )
         {
-            // Tapped on the microphone itself - can trigger mic activation/feedback
             return;
         }
 
@@ -163,66 +175,82 @@ public class TapToMove : MonoBehaviour
                 screenPosition
             );
 
-        if (!Physics.Raycast(
+        if (
+            !Physics.Raycast(
                 ray,
                 out RaycastHit hit,
                 1000f,
                 ~0,
-                QueryTriggerInteraction.Ignore))
+                QueryTriggerInteraction.Ignore
+            )
+        )
         {
             return;
         }
 
-        // If raycast hit the player or its children, ignore
-        if (hit.transform.IsChildOf(transform) || hit.transform == transform)
+        // Ignore clicks on the player's own hierarchy.
+        if (
+            hit.transform == transform ||
+            hit.transform.IsChildOf(transform)
+        )
         {
             return;
         }
 
-        // Check if user tapped directly on an animal exhibit
-        AnimalExhibit tappedExhibit = hit.collider.GetComponentInParent<AnimalExhibit>();
+        // Did we tap an animal?
+        AnimalExhibit tappedExhibit =
+            hit.collider
+                .GetComponentInParent<AnimalExhibit>();
+
         if (tappedExhibit != null)
         {
+            // Already close enough:
+            // start the conversation.
             if (tappedExhibit.PlayerInRange)
             {
-                // Player is already close enough to talk to this animal: pop up microphone
                 if (hud != null)
                 {
-                    hud.OpenMicrophone(tappedExhibit);
+                    hud.StartConversation(
+                        tappedExhibit
+                    );
                 }
+
                 return;
             }
-            else
-            {
-                // Player tapped an animal that is farther away: move towards it
-                if (NavMesh.SamplePosition(
+
+            // Animal is farther away:
+            // walk toward it.
+            if (
+                NavMesh.SamplePosition(
                     hit.point,
                     out NavMeshHit animalNavHit,
                     navMeshSampleDistance + 2f,
-                    NavMesh.AllAreas))
-                {
-                    agent.SetDestination(animalNavHit.position);
-                    if (hud != null && hud.IsMicActive)
-                    {
-                        hud.CloseMicrophone();
-                    }
-                    return;
-                }
+                    NavMesh.AllAreas
+                )
+            )
+            {
+                agent.isStopped = false;
+
+                agent.SetDestination(
+                    animalNavHit.position
+                );
+
+                return;
             }
         }
 
-        // Tapped outside or on regular ground: close microphone if open, and move to target
-        if (hud != null && hud.IsMicActive)
+        // Normal ground tap.
+        if (
+            NavMesh.SamplePosition(
+                hit.point,
+                out NavMeshHit navHit,
+                navMeshSampleDistance,
+                NavMesh.AllAreas
+            )
+        )
         {
-            hud.CloseMicrophone();
-        }
+            agent.isStopped = false;
 
-        if (NavMesh.SamplePosition(
-            hit.point,
-            out NavMeshHit navHit,
-            navMeshSampleDistance,
-            NavMesh.AllAreas))
-        {
             agent.SetDestination(
                 navHit.position
             );
@@ -231,8 +259,14 @@ public class TapToMove : MonoBehaviour
 
     private void UpdateAnimation()
     {
-        if (animator == null || !animator.gameObject.activeInHierarchy || !animator.isActiveAndEnabled)
+        if (
+            animator == null ||
+            !animator.gameObject.activeInHierarchy ||
+            !animator.isActiveAndEnabled
+        )
+        {
             return;
+        }
 
         bool moving =
             agent.velocity.sqrMagnitude > 0.05f;
@@ -247,8 +281,10 @@ public class TapToMove : MonoBehaviour
             AnimatorStateInfo state =
                 animator.GetCurrentAnimatorStateInfo(0);
 
-            if (state.fullPathHash != MoveState &&
-                !animator.IsInTransition(0))
+            if (
+                state.fullPathHash != MoveState &&
+                !animator.IsInTransition(0)
+            )
             {
                 animator.CrossFade(
                     MoveState,
@@ -268,8 +304,10 @@ public class TapToMove : MonoBehaviour
             AnimatorStateInfo state =
                 animator.GetCurrentAnimatorStateInfo(0);
 
-            if (state.fullPathHash != IdleState &&
-                !animator.IsInTransition(0))
+            if (
+                state.fullPathHash != IdleState &&
+                !animator.IsInTransition(0)
+            )
             {
                 animator.CrossFade(
                     IdleState,

@@ -1,248 +1,427 @@
 using UnityEngine;
+using UnityEngine.AI;
 
 public class ExhibitHUD : MonoBehaviour
 {
-    [Header("UI Textures (from Assets/UI)")]
+    [Header("UI Textures")]
     [SerializeField] private Texture2D interactionPromptTex;
-    [SerializeField] private Texture2D micIconTex;
 
-    [Header("Speech Bubble Settings")]
-    [Tooltip("Font size for the text inside the prompt bubble.")]
+    [Header("Prompt Settings")]
     [SerializeField] private int promptFontSize = 11;
-    [Tooltip("Minimum width of the speech bubble.")]
-    [SerializeField] private float promptMinWidth = 175f;
-    [Tooltip("Minimum height of the speech bubble.")]
-    [SerializeField] private float promptMinHeight = 48f;
-    [Tooltip("Extra horizontal padding around the text.")]
-    [SerializeField] private float promptPaddingX = 54f;
-    [Tooltip("Extra vertical padding around the text.")]
-    [SerializeField] private float promptPaddingY = 22f;
-    [Tooltip("Fine-tune text position inside the bubble (X moves horizontally, Y moves vertically). Positive Y moves down, negative Y moves up.")]
-    [SerializeField] private Vector2 textOffset = Vector2.zero;
 
-    [Header("Microphone Popup Settings")]
-    [Tooltip("Size (width & height) of the microphone icon in pixels.")]
-    [SerializeField] private float microphoneSize = 64f;
-    [Tooltip("Distance from the bottom of the screen in pixels.")]
-    [SerializeField] private float microphoneBottomMargin = 40f;
+    [SerializeField] private float promptMinWidth = 175f;
+    [SerializeField] private float promptMinHeight = 48f;
+
+    [SerializeField] private float promptPaddingX = 54f;
+    [SerializeField] private float promptPaddingY = 22f;
+
+    [SerializeField] private Vector2 textOffset =
+        Vector2.zero;
 
     private GUIStyle promptTextStyle;
-    private GUIStyle micButtonStyle;
+    private GUIStyle conversationTitleStyle;
+    private GUIStyle conversationBodyStyle;
+
     private bool stylesInitialized;
 
-    private AnimalExhibit activeExhibit;
-    private AnimalExhibit openDialogueExhibit;
+    private AnimalExhibit nearbyExhibit;
+    private AnimalExhibit activeConversationExhibit;
 
-    private Rect micRect;
+    private NavMeshAgent playerAgent;
 
-    public bool IsMicActive => openDialogueExhibit != null;
+    public bool IsConversationActive =>
+        activeConversationExhibit != null;
+
+    public AnimalExhibit ActiveConversationExhibit =>
+        activeConversationExhibit;
 
     private void Awake()
     {
+        playerAgent =
+            GetComponent<NavMeshAgent>();
+
         LoadTexturesIfNeeded();
     }
 
-    private void LoadTexturesIfNeeded()
+    private void Update()
     {
-        if (interactionPromptTex == null)
+        FindNearestExhibit();
+
+        // If the player somehow leaves the animal's range,
+        // automatically close the conversation.
+        if (
+            activeConversationExhibit != null &&
+            !activeConversationExhibit.PlayerInRange
+        )
         {
-            interactionPromptTex = Resources.Load<Texture2D>("interaction_prompt@2x");
-#if UNITY_EDITOR
-            if (interactionPromptTex == null)
-            {
-                interactionPromptTex = UnityEditor.AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/UI/interaction_prompt@2x.png");
-            }
-#endif
+            EndConversation();
         }
-
-        if (micIconTex == null)
-        {
-            micIconTex = Resources.Load<Texture2D>("icon_mic@2x");
-#if UNITY_EDITOR
-            if (micIconTex == null)
-            {
-                micIconTex = UnityEditor.AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/UI/icon_mic@2x.png");
-            }
-#endif
-        }
-    }
-
-    public void OpenMicrophone(AnimalExhibit exhibit)
-    {
-        openDialogueExhibit = exhibit;
-        if (exhibit != null)
-        {
-            exhibit.OpenDialogue();
-        }
-    }
-
-    public void CloseMicrophone()
-    {
-        if (openDialogueExhibit != null)
-        {
-            openDialogueExhibit.CloseDialogue();
-            openDialogueExhibit = null;
-        }
-    }
-
-    public bool IsScreenPointOverMic(Vector2 screenPoint)
-    {
-        if (!IsMicActive)
-            return false;
-
-        float guiY = Screen.height - screenPoint.y;
-        return micRect.Contains(new Vector2(screenPoint.x, guiY));
     }
 
     private void OnGUI()
     {
         InitStylesIfNeeded();
 
-        // 1. Find nearest animal within range
-        AnimalExhibit nearest = null;
-        float nearestDist = float.MaxValue;
-
-        var exhibits = FindObjectsByType<AnimalExhibit>(
-            FindObjectsInactive.Exclude,
-            FindObjectsSortMode.None
-        );
-
-        foreach (var ex in exhibits)
+        // Nearby greeting prompt.
+        if (
+            nearbyExhibit != null &&
+            !IsConversationActive
+        )
         {
-            if (ex.PlayerInRange)
-            {
-                float distance = Vector3.Distance(transform.position, ex.transform.position);
-                if (distance < nearestDist)
-                {
-                    nearestDist = distance;
-                    nearest = ex;
-                }
-            }
+            DrawFloatingWorldPrompt(
+                nearbyExhibit
+            );
         }
 
-        activeExhibit = nearest;
-
-        // If player walked away from the open exhibit, close microphone
-        if (openDialogueExhibit != null && (!openDialogueExhibit.PlayerInRange || !openDialogueExhibit.DialogueOpen))
+        // Temporary conversation panel.
+        if (IsConversationActive)
         {
-            openDialogueExhibit = null;
-        }
-
-        // 2. Draw animal popup prompt above their head when player is near and mic is not open for it
-        if (activeExhibit != null && activeExhibit != openDialogueExhibit)
-        {
-            DrawFloatingWorldPrompt(activeExhibit);
-        }
-
-        // 3. Draw microphone popup in the middle of screen if open
-        if (openDialogueExhibit != null)
-        {
-            DrawMicrophonePopup(openDialogueExhibit);
+            DrawTemporaryConversationUI();
         }
     }
 
-    private void DrawFloatingWorldPrompt(AnimalExhibit exhibit)
+    private void FindNearestExhibit()
     {
-        Camera cam = Camera.main;
-        if (cam == null) return;
+        AnimalExhibit nearest = null;
+        float nearestDistance =
+            float.MaxValue;
 
-        Vector3 worldPos = exhibit.BillboardWorldPosition;
-        Vector3 screenPos = cam.WorldToScreenPoint(worldPos);
+        AnimalExhibit[] exhibits =
+            FindObjectsByType<AnimalExhibit>(
+                FindObjectsInactive.Exclude,
+                FindObjectsSortMode.None
+            );
 
-        if (screenPos.z > 0.5f)
+        foreach (AnimalExhibit exhibit in exhibits)
         {
-            float guiY = Screen.height - screenPos.y;
-            string text = exhibit.InteractPromptText;
+            if (!exhibit.PlayerInRange)
+                continue;
 
-            promptTextStyle.fontSize = promptFontSize;
+            float distance =
+                Vector3.Distance(
+                    transform.position,
+                    exhibit.transform.position
+                );
 
-            GUIContent content = new GUIContent(text);
-            Vector2 textSize = promptTextStyle.CalcSize(content);
+            if (distance < nearestDistance)
+            {
+                nearestDistance = distance;
+                nearest = exhibit;
+            }
+        }
 
-            float bubbleWidth = Mathf.Max(textSize.x + promptPaddingX, promptMinWidth);
-            float bubbleHeight = Mathf.Max(textSize.y + promptPaddingY, promptMinHeight);
+        nearbyExhibit = nearest;
+    }
 
-            Rect bubbleRect = new Rect(
-                screenPos.x - bubbleWidth * 0.5f,
-                guiY - bubbleHeight * 0.5f,
+    public void StartConversation(
+        AnimalExhibit exhibit
+    )
+    {
+        if (exhibit == null)
+            return;
+
+        if (!exhibit.PlayerInRange)
+            return;
+
+        // Close any previous conversation.
+        if (
+            activeConversationExhibit != null &&
+            activeConversationExhibit != exhibit
+        )
+        {
+            activeConversationExhibit
+                .CloseDialogue();
+        }
+
+        activeConversationExhibit =
+            exhibit;
+
+        activeConversationExhibit
+            .OpenDialogue();
+
+        // Stop the player during the conversation.
+        if (playerAgent != null)
+        {
+            playerAgent.ResetPath();
+            playerAgent.isStopped = true;
+        }
+    }
+
+    public void EndConversation()
+    {
+        if (activeConversationExhibit != null)
+        {
+            activeConversationExhibit
+                .CloseDialogue();
+
+            activeConversationExhibit =
+                null;
+        }
+
+        // Allow movement again.
+        if (playerAgent != null)
+        {
+            playerAgent.isStopped = false;
+        }
+    }
+
+    private void DrawFloatingWorldPrompt(
+        AnimalExhibit exhibit
+    )
+    {
+        Camera cam =
+            Camera.main;
+
+        if (cam == null)
+            return;
+
+        Vector3 screenPosition =
+            cam.WorldToScreenPoint(
+                exhibit.BillboardWorldPosition
+            );
+
+        if (screenPosition.z <= 0.5f)
+            return;
+
+        float guiY =
+            Screen.height -
+            screenPosition.y;
+
+        string text =
+            exhibit.InteractPromptText;
+
+        promptTextStyle.fontSize =
+            promptFontSize;
+
+        GUIContent content =
+            new GUIContent(text);
+
+        Vector2 textSize =
+            promptTextStyle
+                .CalcSize(content);
+
+        float bubbleWidth =
+            Mathf.Max(
+                textSize.x +
+                promptPaddingX,
+                promptMinWidth
+            );
+
+        float bubbleHeight =
+            Mathf.Max(
+                textSize.y +
+                promptPaddingY,
+                promptMinHeight
+            );
+
+        Rect bubbleRect =
+            new Rect(
+                screenPosition.x -
+                bubbleWidth * 0.5f,
+                guiY -
+                bubbleHeight * 0.5f,
                 bubbleWidth,
                 bubbleHeight
             );
 
-            // Draw prompt background from Assets/UI/interaction_prompt@2x.png
-            if (interactionPromptTex != null)
-            {
-                GUI.DrawTexture(bubbleRect, interactionPromptTex, ScaleMode.StretchToFill);
-            }
-            else
-            {
-                GUI.Box(bubbleRect, GUIContent.none);
-            }
-
-            // Draw label with independent offset
-            Rect textRect = new Rect(
-                bubbleRect.x + textOffset.x,
-                bubbleRect.y + textOffset.y,
-                bubbleRect.width,
-                bubbleRect.height
-            );
-            GUI.Label(textRect, content, promptTextStyle);
-        }
-    }
-
-    private void DrawMicrophonePopup(AnimalExhibit exhibit)
-    {
-        float micSize = microphoneSize;
-        float centerX = Screen.width * 0.5f;
-        float micY = Screen.height - microphoneBottomMargin - micSize;
-
-        micRect = new Rect(centerX - micSize * 0.5f, micY, micSize, micSize);
-
-        // Draw microphone button using Assets/UI/icon_mic@2x.png
-        if (micIconTex != null)
+        if (interactionPromptTex != null)
         {
-            GUI.DrawTexture(micRect, micIconTex, ScaleMode.ScaleToFit);
+            GUI.DrawTexture(
+                bubbleRect,
+                interactionPromptTex,
+                ScaleMode.StretchToFill
+            );
         }
         else
         {
-            GUI.Box(micRect, "MIC", micButtonStyle);
+            GUI.Box(
+                bubbleRect,
+                GUIContent.none
+            );
         }
 
-        // Subtitle above mic
-        GUIStyle subStyle = new GUIStyle(GUI.skin.label)
-        {
-            alignment = TextAnchor.LowerCenter,
-            fontSize = 12,
-            fontStyle = FontStyle.Normal
-        };
-        subStyle.normal.textColor = new Color(1f, 0.95f, 0.7f, 0.9f);
+        Rect textRect =
+            new Rect(
+                bubbleRect.x +
+                textOffset.x,
+                bubbleRect.y +
+                textOffset.y,
+                bubbleRect.width,
+                bubbleRect.height
+            );
 
-        Rect subRect = new Rect(centerX - 150f, micY - 24f, 300f, 22f);
-        GUI.Label(subRect, $"Tap outside to move", subStyle);
+        GUI.Label(
+            textRect,
+            content,
+            promptTextStyle
+        );
+    }
+
+    private void DrawTemporaryConversationUI()
+    {
+        if (activeConversationExhibit == null)
+            return;
+
+        float width = 440f;
+        float height = 185f;
+
+        float x =
+            (Screen.width - width) * 0.5f;
+
+        float y =
+            Screen.height - height - 35f;
+
+        Rect panelRect =
+            new Rect(
+                x,
+                y,
+                width,
+                height
+            );
+
+        GUI.Box(
+            panelRect,
+            GUIContent.none
+        );
+
+        // Title
+        GUI.Label(
+            new Rect(
+                x + 22f,
+                y + 20f,
+                width - 44f,
+                30f
+            ),
+            $"Hi! I'm a {activeConversationExhibit.AnimalTypeName.ToLower()}.",
+            conversationTitleStyle
+        );
+
+        // Message
+        GUI.Label(
+            new Rect(
+                x + 22f,
+                y + 58f,
+                width - 44f,
+                30f
+            ),
+            "Would you like to chat with me?",
+            conversationBodyStyle
+        );
+
+        // Large explicit close button
+        Rect closeButtonRect =
+            new Rect(
+                x + 40f,
+                y + 110f,
+                width - 80f,
+                48f
+            );
+
+        if (
+            GUI.Button(
+                closeButtonRect,
+                "Close conversation"
+            )
+        )
+        {
+            EndConversation();
+        }
     }
 
     private void InitStylesIfNeeded()
     {
-        if (stylesInitialized) return;
+        if (stylesInitialized)
+            return;
 
         LoadTexturesIfNeeded();
 
-        promptTextStyle = new GUIStyle(GUI.skin.label)
-        {
-            alignment = TextAnchor.MiddleCenter,
-            fontSize = 11,
-            fontStyle = FontStyle.Bold,
-            wordWrap = false
-        };
-        promptTextStyle.normal.textColor = new Color(0.12f, 0.15f, 0.22f);
+        promptTextStyle =
+            new GUIStyle(
+                GUI.skin.label
+            )
+            {
+                alignment =
+                    TextAnchor.MiddleCenter,
 
-        micButtonStyle = new GUIStyle(GUI.skin.box)
-        {
-            alignment = TextAnchor.MiddleCenter,
-            fontSize = 16,
-            fontStyle = FontStyle.Bold
-        };
+                fontSize =
+                    promptFontSize,
+
+                fontStyle =
+                    FontStyle.Bold,
+
+                wordWrap =
+                    false
+            };
+
+        promptTextStyle
+            .normal
+            .textColor =
+            new Color(
+                0.12f,
+                0.15f,
+                0.22f
+            );
+
+        conversationTitleStyle =
+            new GUIStyle(
+                GUI.skin.label
+            )
+            {
+                alignment =
+                    TextAnchor.MiddleLeft,
+
+                fontSize = 18,
+
+                fontStyle =
+                    FontStyle.Bold
+            };
+
+        conversationTitleStyle
+            .normal
+            .textColor =
+            Color.white;
+
+        conversationBodyStyle =
+            new GUIStyle(
+                GUI.skin.label
+            )
+            {
+                alignment =
+                    TextAnchor.MiddleLeft,
+
+                fontSize = 14,
+
+                wordWrap =
+                    true
+            };
+
+        conversationBodyStyle
+            .normal
+            .textColor =
+            Color.white;
 
         stylesInitialized = true;
+    }
+
+    private void LoadTexturesIfNeeded()
+    {
+        if (interactionPromptTex != null)
+            return;
+
+        interactionPromptTex =
+            Resources.Load<Texture2D>(
+                "interaction_prompt@2x"
+            );
+
+#if UNITY_EDITOR
+        if (interactionPromptTex == null)
+        {
+            interactionPromptTex =
+                UnityEditor.AssetDatabase
+                    .LoadAssetAtPath<Texture2D>(
+                        "Assets/UI/interaction_prompt@2x.png"
+                    );
+        }
+#endif
     }
 }
