@@ -16948,6 +16948,7 @@ MonoBehaviour:
   funFact: Horses can sleep both lying down and standing up! They communicate their
     mood using their ears, eyes, and nostrils.
   portrait: {fileID: 2800000, guid: 9fa1c42e45d29463d9131fcef3067ba1, type: 3}
+  aiVoice: Charon
   interactionRadius: 3.2
   billboardOffset: {x: 0, y: 3.9, z: 0}
 --- !u!95 &233486715
@@ -30529,6 +30530,7 @@ MonoBehaviour:
   funFact: Penguins cannot fly in the air, but their flippers allow them to 'fly'
     underwater with astonishing speed and agility!
   portrait: {fileID: 2800000, guid: efb2aef3b351d4b7c92ee552652bf4f8, type: 3}
+  aiVoice: Leda
   interactionRadius: 3.2
   billboardOffset: {x: 0, y: 2.7, z: 0}
 --- !u!95 &435527565
@@ -36199,7 +36201,7 @@ Transform:
   m_GameObject: {fileID: 538579783}
   serializedVersion: 2
   m_LocalRotation: {x: 0.021640414, y: 0, z: 0, w: 0.9997658}
-  m_LocalPosition: {x: -2.07, y: -0.34, z: 0}
+  m_LocalPosition: {x: -3.535, y: -0.3, z: 1.745}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -42693,11 +42695,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1573451687187096224, guid: 9d2a83dfec4a54d5a93b4f690eff7f88, type: 3}
       propertyPath: m_SizeDelta.x
-      value: 240
+      value: 280
       objectReference: {fileID: 0}
     - target: {fileID: 1573451687187096224, guid: 9d2a83dfec4a54d5a93b4f690eff7f88, type: 3}
       propertyPath: m_SizeDelta.y
-      value: 190
+      value: 200
       objectReference: {fileID: 0}
     - target: {fileID: 1573451687187096224, guid: 9d2a83dfec4a54d5a93b4f690eff7f88, type: 3}
       propertyPath: m_AnchoredPosition.x
@@ -56789,7 +56791,7 @@ Transform:
   m_GameObject: {fileID: 844874042}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -0.000000008043772, y: 7.5837836e-10, z: -0.000000003120895}
+  m_LocalPosition: {x: 3.216, y: 2.7, z: -0.967}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -77151,6 +77153,7 @@ MonoBehaviour:
   funFact: Deer can leap up to 10 feet high and run over 30 miles per hour! Their
     large ears can swivel in all directions to detect tiny sounds.
   portrait: {fileID: 2800000, guid: 1d4d66ca968e1466596871822f871848, type: 3}
+  aiVoice: Sulafat
   interactionRadius: 3.2
   billboardOffset: {x: 0, y: 3.8, z: 0}
 --- !u!95 &1135419655
@@ -83267,6 +83270,7 @@ MonoBehaviour:
   funFact: Chickens have amazing memories and can recognize over 100 different faces
     of people and other animals!
   portrait: {fileID: 2800000, guid: f883a253376874da9a40f87b90c23812, type: 3}
+  aiVoice: Fenrir
   interactionRadius: 3.2
   billboardOffset: {x: 0, y: 1.6, z: 0}
 --- !u!95 &1205042109
@@ -90531,6 +90535,7 @@ MonoBehaviour:
   funFact: Cats can rotate their flexible ears 180 degrees and make over 100 different
     vocal sounds, compared to about 10 for dogs!
   portrait: {fileID: 2800000, guid: 3e47ef84a9a9341c4bd3a8817a770ba2, type: 3}
+  aiVoice: Aoede
   interactionRadius: 3.2
   billboardOffset: {x: 0, y: 1.4, z: 0}
 --- !u!95 &1321952437
@@ -98888,15 +98893,15 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1425428166}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0.4226183, z: -0, w: 0.9063078}
-  m_LocalPosition: {x: 14, y: 1.64, z: -8.5}
+  m_LocalRotation: {x: 0.016982114, y: 0.101195976, z: -0.016781041, w: 0.99458}
+  m_LocalPosition: {x: 10.62, y: 1.08, z: -13.325714}
   m_LocalScale: {x: 1.8, y: 1.8, z: 1.8}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 844874043}
   - {fileID: 538579784}
   m_Father: {fileID: 791638423}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 2.131, y: 11.587, z: -1.717}
 --- !u!114 &1425428168
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -98917,6 +98922,7 @@ MonoBehaviour:
   funFact: Did you know? A tiger's stripes are on its skin as well as its fur! Also,
     tigers love swimming and often bathe in cool rivers.
   portrait: {fileID: 2800000, guid: 1ea4626cd1beb4f0481d72116ad3616d, type: 3}
+  aiVoice: Algenib
   interactionRadius: 3.2
   billboardOffset: {x: 0, y: 3.2, z: 0}
 --- !u!95 &1425428171
@@ -110949,6 +110955,7 @@ MonoBehaviour:
   funFact: A dog's sense of smell is up to 40 times stronger than humans! They are
     known as loyal companions and love learning new tricks.
   portrait: {fileID: 2800000, guid: 9482c83cfd7924c93b8872aa404e8cd1, type: 3}
+  aiVoice: Puck
   interactionRadius: 3.2
   billboardOffset: {x: 0, y: 2.2, z: 0}
 --- !u!95 &1586463284

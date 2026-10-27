@@ -14,9 +14,7 @@ from google.genai import types
 # ENVIRONMENT
 # ============================================================
 
-BASE_DIR = os.path.dirname(
-    os.path.abspath(__file__)
-)
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 load_dotenv(
     os.path.join(BASE_DIR, ".env")
@@ -46,7 +44,6 @@ client = genai.Client(
 # ============================================================
 
 def build_system_prompt(data):
-
     animal = str(
         data.get("animal", "animal")
     )
@@ -68,8 +65,8 @@ def build_system_prompt(data):
     )
 
     return f"""
-You are a friendly educational {animal} in a children's
-interactive animal sanctuary.
+You are a friendly educational {animal}
+inside an interactive children's animal sanctuary.
 
 The child is between 5 and 10 years old.
 
@@ -99,7 +96,7 @@ ALLOWED TOPICS
 - animals
 - nature
 - habitats
-- food
+- animal food
 - animal behavior
 - conservation
 - simple child-friendly science
@@ -138,25 +135,19 @@ Do not invent animal facts when you are unsure.
 # ============================================================
 
 async def animal_live_handler(websocket):
-
     print("Unity connected.")
 
     stop_event = asyncio.Event()
 
     try:
-
         # ----------------------------------------------------
-        # FIRST MESSAGE
+        # START MESSAGE
         # ----------------------------------------------------
 
         raw_start = await websocket.recv()
-
-        start_data = json.loads(
-            raw_start
-        )
+        start_data = json.loads(raw_start)
 
         if start_data.get("type") != "start":
-
             await websocket.send(
                 json.dumps(
                     {
@@ -165,12 +156,33 @@ async def animal_live_handler(websocket):
                     }
                 )
             )
-
             return
+
+        animal = str(
+            start_data.get(
+                "animal",
+                "Animal"
+            )
+        )
+
+        voice_name = str(
+            start_data.get(
+                "voice",
+                "Kore"
+            )
+        ).strip()
+
+        if not voice_name:
+            voice_name = "Kore"
 
         print(
             "Starting Live session for:",
-            start_data.get("animal")
+            animal
+        )
+
+        print(
+            "Using voice:",
+            voice_name
         )
 
         system_prompt = build_system_prompt(
@@ -178,11 +190,10 @@ async def animal_live_handler(websocket):
         )
 
         # ----------------------------------------------------
-        # LIVE CONFIG
+        # GEMINI LIVE CONFIG
         # ----------------------------------------------------
 
         config = types.LiveConnectConfig(
-
             response_modalities=[
                 types.Modality.AUDIO
             ],
@@ -192,13 +203,11 @@ async def animal_live_handler(websocket):
 
             speech_config=
                 types.SpeechConfig(
-
                     voice_config=
                         types.VoiceConfig(
-
                             prebuilt_voice_config=
                                 types.PrebuiltVoiceConfig(
-                                    voice_name="Kore"
+                                    voice_name=voice_name
                                 )
                         )
                 ),
@@ -209,16 +218,10 @@ async def animal_live_handler(websocket):
             output_audio_transcription=
                 types.AudioTranscriptionConfig(),
 
-            # Keep automatic speech detection enabled.
-            #
-            # Unity explicitly tells us when the microphone
-            # stream ends using audio_stream_end.
             realtime_input_config=
                 types.RealtimeInputConfig(
-
                     automatic_activity_detection=
                         types.AutomaticActivityDetection(
-
                             disabled=False,
 
                             start_of_speech_sensitivity=
@@ -241,7 +244,7 @@ async def animal_live_handler(websocket):
         )
 
         # ----------------------------------------------------
-        # CONNECT TO GEMINI
+        # CONNECT TO GEMINI LIVE
         # ----------------------------------------------------
 
         async with client.aio.live.connect(
@@ -257,18 +260,17 @@ async def animal_live_handler(websocket):
                 )
             )
 
-            print("Gemini Live ready.")
+            print(
+                "Gemini Live ready."
+            )
 
             # =================================================
             # UNITY -> GEMINI
             # =================================================
 
             async def receive_from_unity():
-
                 try:
-
                     async for raw_message in websocket:
-
                         message = json.loads(
                             raw_message
                         )
@@ -282,7 +284,6 @@ async def animal_live_handler(websocket):
                         # -------------------------------------
 
                         if message_type == "audio":
-
                             encoded = message.get(
                                 "data",
                                 ""
@@ -291,68 +292,53 @@ async def animal_live_handler(websocket):
                             if not encoded:
                                 continue
 
-                            pcm_bytes = base64.b64decode(
-                                encoded
+                            pcm_bytes = (
+                                base64.b64decode(
+                                    encoded
+                                )
                             )
 
                             await session.send_realtime_input(
-
                                 audio=
                                     types.Blob(
-
                                         data=pcm_bytes,
-
                                         mime_type=
                                             "audio/pcm;rate=16000"
                                     )
                             )
 
                         # -------------------------------------
-                        # PUSH-TO-TALK RELEASED
+                        # PUSH-TO-TALK RELEASE
                         # -------------------------------------
 
                         elif message_type == "audio_end":
-
                             print(
                                 "Push-to-talk released."
                             )
 
-                            # This ends THIS microphone stream,
-                            # not the whole Gemini session.
-                            #
-                            # Google allows the stream to be
-                            # reopened later by sending more audio.
                             await session.send_realtime_input(
                                 audio_stream_end=True
                             )
 
                         # -------------------------------------
-                        # ENTIRE ANIMAL CONVERSATION CLOSED
+                        # CLOSE ENTIRE SESSION
                         # -------------------------------------
 
                         elif message_type == "stop":
-
                             print(
                                 "Unity requested Live stop."
                             )
 
                             stop_event.set()
-
                             return
 
-
                 except websockets.ConnectionClosed:
-
                     stop_event.set()
 
-
                 except asyncio.CancelledError:
-
                     pass
 
-
                 except Exception as exc:
-
                     print(
                         "Unity receive error:",
                         repr(exc)
@@ -360,21 +346,17 @@ async def animal_live_handler(websocket):
 
                     stop_event.set()
 
-
             # =================================================
             # GEMINI -> UNITY
             # =================================================
 
             async def receive_from_gemini():
-
                 try:
-
-                    # session.receive() can finish after
-                    # one model turn.
-                    #
-                    # Keep opening it again for future turns.
                     while not stop_event.is_set():
 
+                        # session.receive() may finish after
+                        # one model turn. Re-open it so future
+                        # turns continue working.
                         async for message in session.receive():
 
                             if stop_event.is_set():
@@ -387,16 +369,14 @@ async def animal_live_handler(websocket):
                             if server_content is None:
                                 continue
 
-
                             # ---------------------------------
-                            # AUDIO
+                            # STREAMED AUDIO
                             # ---------------------------------
 
                             if (
                                 server_content.model_turn
                                 is not None
                             ):
-
                                 parts = (
                                     server_content
                                     .model_turn
@@ -405,7 +385,6 @@ async def animal_live_handler(websocket):
                                 )
 
                                 for part in parts:
-
                                     inline_data = (
                                         part.inline_data
                                     )
@@ -421,21 +400,25 @@ async def animal_live_handler(websocket):
                                         continue
 
                                     encoded = (
-                                        base64.b64encode(
+                                        base64
+                                        .b64encode(
                                             audio_bytes
                                         )
-                                        .decode("utf-8")
+                                        .decode(
+                                            "utf-8"
+                                        )
                                     )
 
                                     await websocket.send(
                                         json.dumps(
                                             {
-                                                "type": "audio",
-                                                "data": encoded
+                                                "type":
+                                                    "audio",
+                                                "data":
+                                                    encoded
                                             }
                                         )
                                     )
-
 
                             # ---------------------------------
                             # CHILD TRANSCRIPT
@@ -450,7 +433,6 @@ async def animal_live_handler(websocket):
                                 transcription is not None
                                 and transcription.text
                             ):
-
                                 print(
                                     "Child:",
                                     transcription.text
@@ -459,13 +441,13 @@ async def animal_live_handler(websocket):
                                 await websocket.send(
                                     json.dumps(
                                         {
-                                            "type": "user_text",
+                                            "type":
+                                                "user_text",
                                             "text":
                                                 transcription.text
                                         }
                                     )
                                 )
-
 
                             # ---------------------------------
                             # ANIMAL TRANSCRIPT
@@ -480,7 +462,6 @@ async def animal_live_handler(websocket):
                                 output_transcription is not None
                                 and output_transcription.text
                             ):
-
                                 print(
                                     "Animal:",
                                     output_transcription.text
@@ -489,20 +470,19 @@ async def animal_live_handler(websocket):
                                 await websocket.send(
                                     json.dumps(
                                         {
-                                            "type": "animal_text",
+                                            "type":
+                                                "animal_text",
                                             "text":
                                                 output_transcription.text
                                         }
                                     )
                                 )
 
-
                             # ---------------------------------
                             # INTERRUPTION
                             # ---------------------------------
 
                             if server_content.interrupted:
-
                                 print(
                                     "Animal response interrupted."
                                 )
@@ -510,18 +490,17 @@ async def animal_live_handler(websocket):
                                 await websocket.send(
                                     json.dumps(
                                         {
-                                            "type": "interrupted"
+                                            "type":
+                                                "interrupted"
                                         }
                                     )
                                 )
-
 
                             # ---------------------------------
                             # TURN COMPLETE
                             # ---------------------------------
 
                             if server_content.turn_complete:
-
                                 print(
                                     "Gemini turn complete."
                                 )
@@ -529,28 +508,23 @@ async def animal_live_handler(websocket):
                                 await websocket.send(
                                     json.dumps(
                                         {
-                                            "type": "turn_complete"
+                                            "type":
+                                                "turn_complete"
                                         }
                                     )
                                 )
 
-
                 except asyncio.CancelledError:
-
                     pass
 
-
                 except Exception as exc:
-
                     if not stop_event.is_set():
-
                         print(
                             "Gemini receive error:",
                             repr(exc)
                         )
 
                     stop_event.set()
-
 
             # =================================================
             # RUN BOTH DIRECTIONS
@@ -575,24 +549,31 @@ async def animal_live_handler(websocket):
                 return_exceptions=True
             )
 
-
     except websockets.ConnectionClosed:
-
         print(
             "Unity disconnected."
         )
 
-
     except Exception as exc:
-
         print(
             "Live session error:",
             repr(exc)
         )
 
+        try:
+            await websocket.send(
+                json.dumps(
+                    {
+                        "type": "error",
+                        "message":
+                            "Live conversation failed."
+                    }
+                )
+            )
+        except Exception:
+            pass
 
     finally:
-
         print(
             "Animal Live session ended."
         )
@@ -603,7 +584,6 @@ async def animal_live_handler(websocket):
 # ============================================================
 
 async def main():
-
     print(
         "Animal Live server:"
     )
@@ -613,22 +593,15 @@ async def main():
     )
 
     async with websockets.serve(
-
         animal_live_handler,
-
         "127.0.0.1",
-
         8765,
-
         max_size=None
-
     ):
-
         await asyncio.Future()
 
 
 if __name__ == "__main__":
-
     asyncio.run(
         main()
     )

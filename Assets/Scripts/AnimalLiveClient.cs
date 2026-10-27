@@ -155,6 +155,8 @@ public class AnimalLiveClient : MonoBehaviour
         public string diet;
         public string habitat;
         public string funFact;
+
+        public string voice;
     }
 
 
@@ -350,7 +352,10 @@ public class AnimalLiveClient : MonoBehaviour
                         animal.Habitat,
 
                     funFact =
-                        animal.FunFact
+                        animal.FunFact,
+
+                    voice =
+                        animal.AIVoice
                 };
 
 
@@ -414,14 +419,7 @@ public class AnimalLiveClient : MonoBehaviour
             true;
 
 
-        // -----------------------------------------------------
-        // IMPORTANT:
-        // Child intentionally interrupted the animal.
-        //
-        // Immediately stop whatever Gemini audio Unity
-        // is currently playing.
-        // -----------------------------------------------------
-
+        // Stop the animal audio if the child interrupts.
         ClearIncomingAudio();
 
 
@@ -481,8 +479,6 @@ public class AnimalLiveClient : MonoBehaviour
         }
 
 
-        // Explicitly tell Gemini that this microphone
-        // stream has ended.
         _ = SendAudioEnd();
     }
 
@@ -629,10 +625,6 @@ public class AnimalLiveClient : MonoBehaviour
                 continue;
 
 
-            // -------------------------------------------------
-            // READY
-            // -------------------------------------------------
-
             if (
                 message.type ==
                 "ready"
@@ -660,10 +652,6 @@ public class AnimalLiveClient : MonoBehaviour
             }
 
 
-            // -------------------------------------------------
-            // AUDIO
-            // -------------------------------------------------
-
             if (
                 message.type ==
                 "audio"
@@ -681,10 +669,6 @@ public class AnimalLiveClient : MonoBehaviour
             }
 
 
-            // -------------------------------------------------
-            // CHILD TRANSCRIPT
-            // -------------------------------------------------
-
             if (
                 message.type ==
                 "user_text"
@@ -698,10 +682,6 @@ public class AnimalLiveClient : MonoBehaviour
                 continue;
             }
 
-
-            // -------------------------------------------------
-            // ANIMAL TEXT
-            // -------------------------------------------------
 
             if (
                 message.type ==
@@ -743,10 +723,6 @@ public class AnimalLiveClient : MonoBehaviour
             }
 
 
-            // -------------------------------------------------
-            // TURN COMPLETE
-            // -------------------------------------------------
-
             if (
                 message.type ==
                 "turn_complete"
@@ -756,10 +732,7 @@ public class AnimalLiveClient : MonoBehaviour
                     true;
 
 
-                if (
-                    microphoneButtonText !=
-                    null
-                )
+                if (microphoneButtonText != null)
                 {
                     microphoneButtonText.text =
                         "Hold to Talk";
@@ -769,10 +742,6 @@ public class AnimalLiveClient : MonoBehaviour
                 continue;
             }
 
-
-            // -------------------------------------------------
-            // INTERRUPTED
-            // -------------------------------------------------
 
             if (
                 message.type ==
@@ -790,10 +759,6 @@ public class AnimalLiveClient : MonoBehaviour
                 continue;
             }
 
-
-            // -------------------------------------------------
-            // ERROR
-            // -------------------------------------------------
 
             if (
                 message.type ==
@@ -887,8 +852,7 @@ public class AnimalLiveClient : MonoBehaviour
             return;
 
 
-        // Send anything recorded since our last Update
-        // before closing the microphone.
+        // Send final samples before closing.
         SendNewMicrophoneAudio();
 
 
@@ -1066,7 +1030,7 @@ public class AnimalLiveClient : MonoBehaviour
 
 
         // -----------------------------------------------------
-        // MONO
+        // CONVERT TO MONO
         // -----------------------------------------------------
 
         float[] mono;
@@ -1601,18 +1565,25 @@ public class AnimalLiveClient : MonoBehaviour
     }
 
 
+    // =========================================================
+    // CLEANUP
+    // =========================================================
+
     private void CleanUpLiveState()
     {
         pushToTalkHeld =
             false;
 
+
         StopMicrophone();
+
 
         liveSessionActive =
             false;
 
         geminiReady =
             false;
+
 
         ClearIncomingAudio();
 

@@ -26,9 +26,17 @@ public class AnimalExhibit : MonoBehaviour
 
     [Header("Portrait")]
 
-    [Tooltip("PNG/JPG texture shown on the conversation card.")]
     [SerializeField]
     private Texture2D portrait;
+
+
+    [Header("AI Voice")]
+
+    [Tooltip(
+        "Gemini voice name, for example: Puck, Leda, Aoede, Charon, Sulafat."
+    )]
+    [SerializeField]
+    private string aiVoice = "Kore";
 
 
     [Header("Interaction Settings")]
@@ -73,6 +81,9 @@ public class AnimalExhibit : MonoBehaviour
     public Texture2D Portrait =>
         portrait;
 
+    public string AIVoice =>
+        aiVoice;
+
     public float InteractionRadius =>
         interactionRadius;
 
@@ -88,13 +99,14 @@ public class AnimalExhibit : MonoBehaviour
 
 
     // =========================================================
-    // DIALOGUE STATE
+    // DIALOGUE
     // =========================================================
 
     public void OpenDialogue()
     {
         dialogueOpen = true;
     }
+
 
     public void CloseDialogue()
     {
