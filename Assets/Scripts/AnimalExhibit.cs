@@ -3,44 +3,93 @@ using UnityEngine;
 public class AnimalExhibit : MonoBehaviour
 {
     [Header("Exhibit Info")]
-    [SerializeField] private string animalTypeName = "Animal";
-    [SerializeField] private string animalName = "Animal";
-    [SerializeField] private string species = "Animal";
-    [SerializeField] private string diet = "Food";
-    [SerializeField] private string habitat = "Habitat";
+
+    [SerializeField]
+    private string animalTypeName = "Animal";
+
+    [SerializeField]
+    private string animalName = "Animal";
+
+    [SerializeField]
+    private string species = "Species";
+
+    [SerializeField]
+    private string diet = "Food";
+
+    [SerializeField]
+    private string habitat = "Habitat";
 
     [TextArea(2, 4)]
-    [SerializeField] private string funFact = "Animals are amazing!";
+    [SerializeField]
+    private string funFact = "Animals are amazing!";
 
-    [Header("Interaction")]
-    [Tooltip("A safe point on the NavMesh where the player stands to talk.")]
-    [SerializeField] private Transform interactionPoint;
 
-    [SerializeField] private float interactionRadius = 1.2f;
+    [Header("Portrait")]
 
-    [SerializeField] private Vector3 billboardOffset =
-        new Vector3(0f, 2.5f, 0f);
+    [Tooltip("PNG/JPG texture shown on the conversation card.")]
+    [SerializeField]
+    private Texture2D portrait;
+
+
+    [Header("Interaction Settings")]
+
+    [SerializeField]
+    private float interactionRadius = 3f;
+
+    [SerializeField]
+    private Vector3 billboardOffset =
+        new Vector3(
+            0f,
+            2.5f,
+            0f
+        );
+
 
     private bool dialogueOpen;
 
-    public string AnimalTypeName => animalTypeName;
-    public string AnimalName => animalName;
-    public string Species => species;
-    public string Diet => diet;
-    public string Habitat => habitat;
-    public string FunFact => funFact;
 
-    public Transform InteractionPoint => interactionPoint;
+    // =========================================================
+    // PUBLIC PROPERTIES
+    // =========================================================
 
-    public float InteractionRadius => interactionRadius;
+    public string AnimalTypeName =>
+        animalTypeName;
 
-    public bool DialogueOpen => dialogueOpen;
+    public string AnimalName =>
+        animalName;
+
+    public string Species =>
+        species;
+
+    public string Diet =>
+        diet;
+
+    public string Habitat =>
+        habitat;
+
+    public string FunFact =>
+        funFact;
+
+    public Texture2D Portrait =>
+        portrait;
+
+    public float InteractionRadius =>
+        interactionRadius;
+
+    public bool DialogueOpen =>
+        dialogueOpen;
 
     public Vector3 BillboardWorldPosition =>
-        transform.position + billboardOffset;
+        transform.position +
+        billboardOffset;
 
     public string InteractPromptText =>
         $"Talk with the {animalTypeName.ToLower()}";
+
+
+    // =========================================================
+    // DIALOGUE STATE
+    // =========================================================
 
     public void OpenDialogue()
     {

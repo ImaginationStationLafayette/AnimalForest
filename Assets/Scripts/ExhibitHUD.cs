@@ -6,27 +6,49 @@ using TMPro;
 public class ExhibitHUD : MonoBehaviour
 {
     [Header("Conversation UI")]
-    [SerializeField] private GameObject conversationCard;
 
-    [Tooltip("The X / Close button on the conversation card.")]
-    [SerializeField] private Button conversationCloseButton;
+    [SerializeField]
+    private GameObject conversationCard;
+
+    [SerializeField]
+    private Button conversationCloseButton;
+
 
     [Header("Conversation Text")]
-    [SerializeField] private TMP_Text speciesText;
-    [SerializeField] private TMP_Text animalGroupText;
-    [SerializeField] private TMP_Text dialogueText;
+
+    [SerializeField]
+    private TMP_Text speciesText;
+
+    [SerializeField]
+    private TMP_Text animalGroupText;
+
+    [SerializeField]
+    private TMP_Text dialogueText;
+
+
+    [Header("Animal Portrait")]
+
+    [SerializeField]
+    private Image portraitImage;
+
+    [SerializeField]
+    private GameObject emptyPortraitHint;
+
 
     private AnimalExhibit activeConversationExhibit;
 
     private NavMeshAgent playerAgent;
     private TapToMove tapToMove;
     private ConversationCamera conversationCamera;
+    private AnimalLiveClient animalLiveClient;
+
 
     public bool IsConversationActive =>
         activeConversationExhibit != null;
 
     public AnimalExhibit ActiveConversationExhibit =>
         activeConversationExhibit;
+
 
     // =========================================================
     // AWAKE
@@ -40,18 +62,22 @@ public class ExhibitHUD : MonoBehaviour
         tapToMove =
             GetComponent<TapToMove>();
 
+        animalLiveClient =
+            GetComponent<AnimalLiveClient>();
+
         if (Camera.main != null)
         {
             conversationCamera =
-                Camera.main.GetComponent<ConversationCamera>();
+                Camera.main.GetComponent<
+                    ConversationCamera
+                >();
         }
 
-        // IMPORTANT:
-        // This should reference the INNER "Animal Card",
-        // not the outer AnimalConversationCard canvas.
         if (conversationCard != null)
         {
-            conversationCard.SetActive(false);
+            conversationCard.SetActive(
+                false
+            );
         }
 
         if (conversationCloseButton != null)
@@ -63,6 +89,7 @@ public class ExhibitHUD : MonoBehaviour
                 );
         }
     }
+
 
     // =========================================================
     // CLEANUP
@@ -80,6 +107,7 @@ public class ExhibitHUD : MonoBehaviour
         }
     }
 
+
     // =========================================================
     // START CONVERSATION
     // =========================================================
@@ -91,7 +119,6 @@ public class ExhibitHUD : MonoBehaviour
         if (exhibit == null)
             return;
 
-        // Clear any previous dialogue state.
         if (activeConversationExhibit != null)
         {
             activeConversationExhibit
@@ -103,6 +130,7 @@ public class ExhibitHUD : MonoBehaviour
 
         activeConversationExhibit
             .OpenDialogue();
+
 
         // Stop player movement.
         if (
@@ -119,10 +147,8 @@ public class ExhibitHUD : MonoBehaviour
                 true;
         }
 
-        // -----------------------------------------------------
-        // SHOW CARD
-        // -----------------------------------------------------
 
+        // Show card.
         if (conversationCard != null)
         {
             conversationCard.SetActive(
@@ -130,23 +156,23 @@ public class ExhibitHUD : MonoBehaviour
             );
         }
 
-        // Update text for tapped animal.
+
+        // Fill card with this animal.
         UpdateConversationCard(
             exhibit
         );
 
-        // -----------------------------------------------------
-        // CAMERA
-        // -----------------------------------------------------
 
-        if (conversationCamera == null)
+        // Start camera framing.
+        if (
+            conversationCamera == null &&
+            Camera.main != null
+        )
         {
-            if (Camera.main != null)
-            {
-                conversationCamera =
-                    Camera.main
-                        .GetComponent<ConversationCamera>();
-            }
+            conversationCamera =
+                Camera.main.GetComponent<
+                    ConversationCamera
+                >();
         }
 
         if (conversationCamera != null)
@@ -156,10 +182,21 @@ public class ExhibitHUD : MonoBehaviour
                     exhibit
                 );
         }
+
+
+        // Prepare Gemini Live connection.
+        if (animalLiveClient != null)
+        {
+            animalLiveClient
+                .PrepareSession(
+                    exhibit
+                );
+        }
     }
 
+
     // =========================================================
-    // UPDATE CARD
+    // UPDATE CARD CONTENT
     // =========================================================
 
     private void UpdateConversationCard(
@@ -168,6 +205,7 @@ public class ExhibitHUD : MonoBehaviour
     {
         if (exhibit == null)
             return;
+
 
         string animalType =
             exhibit.AnimalTypeName;
@@ -178,9 +216,9 @@ public class ExhibitHUD : MonoBehaviour
             )
         )
         {
-            animalType =
-                "Animal";
+            animalType = "Animal";
         }
+
 
         string species =
             exhibit.Species;
@@ -191,9 +229,13 @@ public class ExhibitHUD : MonoBehaviour
             )
         )
         {
-            species =
-                "Animal";
+            species = "Animal";
         }
+
+
+        // -----------------------------------------------------
+        // TEXT
+        // -----------------------------------------------------
 
         if (speciesText != null)
         {
@@ -201,19 +243,77 @@ public class ExhibitHUD : MonoBehaviour
                 animalType.ToUpper();
         }
 
+
         if (animalGroupText != null)
         {
             animalGroupText.text =
                 species.ToUpper();
         }
 
+
         if (dialogueText != null)
         {
             dialogueText.text =
                 $"Hi! I'm a {animalType.ToLower()}. " +
-                "What would you like to know about me?";
+                "Hold the microphone button and ask me something!";
+        }
+
+
+        // -----------------------------------------------------
+        // PORTRAIT
+        // -----------------------------------------------------
+
+        if (portraitImage != null)
+        {
+            if (exhibit.Portrait != null)
+            {
+                Texture2D texture =
+                    exhibit.Portrait;
+
+                Sprite portraitSprite =
+                    Sprite.Create(
+                        texture,
+                        new Rect(
+                            0f,
+                            0f,
+                            texture.width,
+                            texture.height
+                        ),
+                        new Vector2(
+                            0.5f,
+                            0.5f
+                        ),
+                        100f
+                    );
+
+                portraitImage.sprite =
+                    portraitSprite;
+
+                portraitImage.enabled =
+                    true;
+
+                portraitImage.preserveAspect =
+                    true;
+            }
+            else
+            {
+                portraitImage.sprite =
+                    null;
+
+                portraitImage.enabled =
+                    false;
+            }
+        }
+
+
+        if (emptyPortraitHint != null)
+        {
+            emptyPortraitHint.SetActive(
+                exhibit.Portrait == null
+            );
         }
     }
+
 
     // =========================================================
     // END CONVERSATION
@@ -221,10 +321,15 @@ public class ExhibitHUD : MonoBehaviour
 
     public void EndConversation()
     {
-        // -----------------------------------------------------
-        // CLEAR ANIMAL STATE
-        // -----------------------------------------------------
+        // Stop Gemini Live.
+        if (animalLiveClient != null)
+        {
+            animalLiveClient
+                .StopLiveConversation();
+        }
 
+
+        // Clear animal state.
         if (activeConversationExhibit != null)
         {
             activeConversationExhibit
@@ -234,10 +339,8 @@ public class ExhibitHUD : MonoBehaviour
                 null;
         }
 
-        // -----------------------------------------------------
-        // HIDE CARD
-        // -----------------------------------------------------
 
+        // Hide UI.
         if (conversationCard != null)
         {
             conversationCard.SetActive(
@@ -245,20 +348,16 @@ public class ExhibitHUD : MonoBehaviour
             );
         }
 
-        // -----------------------------------------------------
-        // RETURN CAMERA
-        // -----------------------------------------------------
 
+        // Return camera.
         if (conversationCamera != null)
         {
             conversationCamera
                 .EndConversation();
         }
 
-        // -----------------------------------------------------
-        // RE-ENABLE PLAYER
-        // -----------------------------------------------------
 
+        // Restore movement.
         if (
             playerAgent != null &&
             playerAgent.enabled
@@ -273,10 +372,8 @@ public class ExhibitHUD : MonoBehaviour
                 false;
         }
 
-        // -----------------------------------------------------
-        // RESET TAP STATE
-        // -----------------------------------------------------
 
+        // Reset tap state.
         if (tapToMove != null)
         {
             tapToMove
