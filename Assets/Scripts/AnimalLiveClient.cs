@@ -6,7 +6,6 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using TMPro;
-
 using UnityEngine;
 
 
@@ -17,7 +16,6 @@ public class AnimalLiveClient : MonoBehaviour
     // =========================================================
 
     [Header("Live Backend")]
-
     [SerializeField]
     private string liveServerUrl =
         "ws://127.0.0.1:8765";
@@ -28,7 +26,6 @@ public class AnimalLiveClient : MonoBehaviour
     // =========================================================
 
     [Header("References")]
-
     [SerializeField]
     private ExhibitHUD exhibitHUD;
 
@@ -43,27 +40,31 @@ public class AnimalLiveClient : MonoBehaviour
 
 
     // =========================================================
+    // ENVIRONMENT AUDIO
+    // =========================================================
+
+    [Header("Environment Audio")]
+    [SerializeField]
+    private ForestAmbienceController forestAmbience;
+
+
+    // =========================================================
     // MICROPHONE
     // =========================================================
 
     [Header("Microphone")]
+    [SerializeField]
+    private int microphoneSampleRate = 16000;
 
     [SerializeField]
-    private int microphoneSampleRate =
-        16000;
+    private int microphoneBufferSeconds = 10;
 
     [SerializeField]
-    private int microphoneBufferSeconds =
-        10;
-
-    [SerializeField]
-    private float sendInterval =
-        0.05f;
+    private float sendInterval = 0.05f;
 
     [Range(0.5f, 3f)]
     [SerializeField]
-    private float microphoneGain =
-        1.25f;
+    private float microphoneGain = 1.25f;
 
 
     // =========================================================
@@ -71,14 +72,11 @@ public class AnimalLiveClient : MonoBehaviour
     // =========================================================
 
     [Header("Gemini Output")]
+    [SerializeField]
+    private int outputSampleRate = 24000;
 
     [SerializeField]
-    private int outputSampleRate =
-        24000;
-
-    [SerializeField]
-    private float prebufferSeconds =
-        0.20f;
+    private float prebufferSeconds = 0.20f;
 
 
     // =========================================================
@@ -86,14 +84,10 @@ public class AnimalLiveClient : MonoBehaviour
     // =========================================================
 
     private ClientWebSocket socket;
-
     private CancellationTokenSource cancellation;
 
     private readonly SemaphoreSlim sendLock =
-        new SemaphoreSlim(
-            1,
-            1
-        );
+        new SemaphoreSlim(1, 1);
 
 
     // =========================================================
@@ -114,30 +108,19 @@ public class AnimalLiveClient : MonoBehaviour
     // =========================================================
 
     private bool liveSessionActive;
-
     private bool geminiReady;
-
     private bool pushToTalkHeld;
-
     private bool microphoneActive;
-
     private bool streamingPlaybackStarted;
 
-
     private AudioClip microphoneClip;
-
     private string microphoneDevice;
 
     private int lastMicrophonePosition;
-
     private float sendTimer;
 
-
-    private string animalTranscript =
-        "";
-
-    private bool newAnimalTurn =
-        true;
+    private string animalTranscript = "";
+    private bool newAnimalTurn = true;
 
 
     // =========================================================
@@ -147,15 +130,13 @@ public class AnimalLiveClient : MonoBehaviour
     [Serializable]
     private class StartMessage
     {
-        public string type =
-            "start";
+        public string type = "start";
 
         public string animal;
         public string species;
         public string diet;
         public string habitat;
         public string funFact;
-
         public string voice;
     }
 
@@ -163,9 +144,7 @@ public class AnimalLiveClient : MonoBehaviour
     [Serializable]
     private class AudioMessage
     {
-        public string type =
-            "audio";
-
+        public string type = "audio";
         public string data;
     }
 
@@ -173,16 +152,14 @@ public class AnimalLiveClient : MonoBehaviour
     [Serializable]
     private class AudioEndMessage
     {
-        public string type =
-            "audio_end";
+        public string type = "audio_end";
     }
 
 
     [Serializable]
     private class StopMessage
     {
-        public string type =
-            "stop";
+        public string type = "stop";
     }
 
 
@@ -190,11 +167,8 @@ public class AnimalLiveClient : MonoBehaviour
     private class ServerMessage
     {
         public string type;
-
         public string data;
-
         public string text;
-
         public string message;
     }
 
@@ -220,20 +194,22 @@ public class AnimalLiveClient : MonoBehaviour
             if (audioSource == null)
             {
                 audioSource =
-                    gameObject
-                        .AddComponent<AudioSource>();
+                    gameObject.AddComponent<AudioSource>();
             }
         }
 
 
-        audioSource.playOnAwake =
-            false;
+        audioSource.playOnAwake = false;
+        audioSource.loop = true;
+        audioSource.spatialBlend = 0f;
 
-        audioSource.loop =
-            true;
 
-        audioSource.spatialBlend =
-            0f;
+        // Automatically find the forest ambience controller.
+        if (forestAmbience == null)
+        {
+            forestAmbience =
+                FindFirstObjectByType<ForestAmbienceController>();
+        }
 
 
         CreateStreamingAudioClip();
@@ -256,17 +232,11 @@ public class AnimalLiveClient : MonoBehaviour
             microphoneActive
         )
         {
-            sendTimer +=
-                Time.deltaTime;
+            sendTimer += Time.deltaTime;
 
-
-            if (
-                sendTimer >=
-                sendInterval
-            )
+            if (sendTimer >= sendInterval)
             {
-                sendTimer =
-                    0f;
+                sendTimer = 0f;
 
                 SendNewMicrophoneAudio();
             }
@@ -293,20 +263,12 @@ public class AnimalLiveClient : MonoBehaviour
             return;
 
 
-        liveSessionActive =
-            true;
+        liveSessionActive = true;
+        geminiReady = false;
+        pushToTalkHeld = false;
 
-        geminiReady =
-            false;
-
-        pushToTalkHeld =
-            false;
-
-        animalTranscript =
-            "";
-
-        newAnimalTurn =
-            true;
+        animalTranscript = "";
+        newAnimalTurn = true;
 
 
         if (microphoneButtonText != null)
@@ -319,7 +281,6 @@ public class AnimalLiveClient : MonoBehaviour
         socket =
             new ClientWebSocket();
 
-
         cancellation =
             new CancellationTokenSource();
 
@@ -327,11 +288,7 @@ public class AnimalLiveClient : MonoBehaviour
         try
         {
             await socket.ConnectAsync(
-
-                new Uri(
-                    liveServerUrl
-                ),
-
+                new Uri(liveServerUrl),
                 cancellation.Token
             );
 
@@ -360,9 +317,7 @@ public class AnimalLiveClient : MonoBehaviour
 
 
             await SendJson(
-                JsonUtility.ToJson(
-                    start
-                )
+                JsonUtility.ToJson(start)
             );
 
 
@@ -373,10 +328,7 @@ public class AnimalLiveClient : MonoBehaviour
                 "Animal Live session connected."
             );
         }
-
-        catch (
-            Exception exception
-        )
+        catch (Exception exception)
         {
             Debug.LogError(
                 "Live connection failed: " +
@@ -415,19 +367,15 @@ public class AnimalLiveClient : MonoBehaviour
             return;
 
 
-        pushToTalkHeld =
-            true;
+        pushToTalkHeld = true;
 
 
-        // Stop the animal audio if the child interrupts.
+        // Stop the current animal response if the child interrupts.
         ClearIncomingAudio();
 
 
-        animalTranscript =
-            "";
-
-        newAnimalTurn =
-            true;
+        animalTranscript = "";
+        newAnimalTurn = true;
 
 
         if (dialogueText != null)
@@ -444,6 +392,10 @@ public class AnimalLiveClient : MonoBehaviour
         }
 
 
+        // Make the forest much quieter while Gemini is listening.
+        forestAmbience?.BeginListening();
+
+
         StartMicrophone();
     }
 
@@ -458,11 +410,14 @@ public class AnimalLiveClient : MonoBehaviour
             return;
 
 
-        pushToTalkHeld =
-            false;
+        pushToTalkHeld = false;
 
 
         StopMicrophone();
+
+
+        // Restore normal forest volume.
+        forestAmbience?.EndListening();
 
 
         if (microphoneButtonText != null)
@@ -491,8 +446,7 @@ public class AnimalLiveClient : MonoBehaviour
     {
         byte[] buffer =
             new byte[
-                1024 *
-                256
+                1024 * 256
             ];
 
 
@@ -504,9 +458,7 @@ public class AnimalLiveClient : MonoBehaviour
                 WebSocketState.Open
             )
             {
-                int totalBytes =
-                    0;
-
+                int totalBytes = 0;
 
                 WebSocketReceiveResult result;
 
@@ -514,18 +466,14 @@ public class AnimalLiveClient : MonoBehaviour
                 do
                 {
                     result =
-                        await socket
-                            .ReceiveAsync(
-
-                                new ArraySegment<byte>(
-                                    buffer,
-                                    totalBytes,
-                                    buffer.Length -
-                                    totalBytes
-                                ),
-
-                                cancellation.Token
-                            );
+                        await socket.ReceiveAsync(
+                            new ArraySegment<byte>(
+                                buffer,
+                                totalBytes,
+                                buffer.Length - totalBytes
+                            ),
+                            cancellation.Token
+                        );
 
 
                     totalBytes +=
@@ -541,11 +489,8 @@ public class AnimalLiveClient : MonoBehaviour
                             "Live message exceeded buffer."
                         );
                     }
-
                 }
-                while (
-                    !result.EndOfMessage
-                );
+                while (!result.EndOfMessage);
 
 
                 if (
@@ -558,12 +503,11 @@ public class AnimalLiveClient : MonoBehaviour
 
 
                 string json =
-                    Encoding.UTF8
-                        .GetString(
-                            buffer,
-                            0,
-                            totalBytes
-                        );
+                    Encoding.UTF8.GetString(
+                        buffer,
+                        0,
+                        totalBytes
+                    );
 
 
                 receivedMessages.Enqueue(
@@ -571,16 +515,10 @@ public class AnimalLiveClient : MonoBehaviour
                 );
             }
         }
-
-        catch (
-            OperationCanceledException
-        )
+        catch (OperationCanceledException)
         {
         }
-
-        catch (
-            Exception exception
-        )
+        catch (Exception exception)
         {
             Debug.LogError(
                 "Live receive error: " +
@@ -597,10 +535,9 @@ public class AnimalLiveClient : MonoBehaviour
     private void ProcessServerMessages()
     {
         while (
-            receivedMessages
-                .TryDequeue(
-                    out string json
-                )
+            receivedMessages.TryDequeue(
+                out string json
+            )
         )
         {
             ServerMessage message;
@@ -609,12 +546,10 @@ public class AnimalLiveClient : MonoBehaviour
             try
             {
                 message =
-                    JsonUtility
-                        .FromJson<ServerMessage>(
-                            json
-                        );
+                    JsonUtility.FromJson<ServerMessage>(
+                        json
+                    );
             }
-
             catch
             {
                 continue;
@@ -625,13 +560,13 @@ public class AnimalLiveClient : MonoBehaviour
                 continue;
 
 
-            if (
-                message.type ==
-                "ready"
-            )
+            // -------------------------------------------------
+            // SERVER READY
+            // -------------------------------------------------
+
+            if (message.type == "ready")
             {
-                geminiReady =
-                    true;
+                geminiReady = true;
 
 
                 if (microphoneButtonText != null)
@@ -652,10 +587,12 @@ public class AnimalLiveClient : MonoBehaviour
             }
 
 
+            // -------------------------------------------------
+            // AUDIO
+            // -------------------------------------------------
+
             if (
-                message.type ==
-                "audio"
-                &&
+                message.type == "audio" &&
                 !string.IsNullOrEmpty(
                     message.data
                 )
@@ -669,10 +606,11 @@ public class AnimalLiveClient : MonoBehaviour
             }
 
 
-            if (
-                message.type ==
-                "user_text"
-            )
+            // -------------------------------------------------
+            // CHILD TRANSCRIPT
+            // -------------------------------------------------
+
+            if (message.type == "user_text")
             {
                 Debug.Log(
                     "Child: " +
@@ -683,10 +621,11 @@ public class AnimalLiveClient : MonoBehaviour
             }
 
 
-            if (
-                message.type ==
-                "animal_text"
-            )
+            // -------------------------------------------------
+            // ANIMAL TRANSCRIPT
+            // -------------------------------------------------
+
+            if (message.type == "animal_text")
             {
                 if (
                     string.IsNullOrWhiteSpace(
@@ -700,11 +639,8 @@ public class AnimalLiveClient : MonoBehaviour
 
                 if (newAnimalTurn)
                 {
-                    animalTranscript =
-                        "";
-
-                    newAnimalTurn =
-                        false;
+                    animalTranscript = "";
+                    newAnimalTurn = false;
                 }
 
 
@@ -723,13 +659,13 @@ public class AnimalLiveClient : MonoBehaviour
             }
 
 
-            if (
-                message.type ==
-                "turn_complete"
-            )
+            // -------------------------------------------------
+            // TURN COMPLETE
+            // -------------------------------------------------
+
+            if (message.type == "turn_complete")
             {
-                newAnimalTurn =
-                    true;
+                newAnimalTurn = true;
 
 
                 if (microphoneButtonText != null)
@@ -743,27 +679,26 @@ public class AnimalLiveClient : MonoBehaviour
             }
 
 
-            if (
-                message.type ==
-                "interrupted"
-            )
+            // -------------------------------------------------
+            // INTERRUPTED
+            // -------------------------------------------------
+
+            if (message.type == "interrupted")
             {
                 ClearIncomingAudio();
 
-                animalTranscript =
-                    "";
-
-                newAnimalTurn =
-                    true;
+                animalTranscript = "";
+                newAnimalTurn = true;
 
                 continue;
             }
 
 
-            if (
-                message.type ==
-                "error"
-            )
+            // -------------------------------------------------
+            // ERROR
+            // -------------------------------------------------
+
+            if (message.type == "error")
             {
                 Debug.LogError(
                     "Live server: " +
@@ -785,11 +720,8 @@ public class AnimalLiveClient : MonoBehaviour
 
 
         if (
-            Microphone.devices ==
-            null
-            ||
-            Microphone.devices.Length ==
-            0
+            Microphone.devices == null ||
+            Microphone.devices.Length == 0
         )
         {
             Debug.LogError(
@@ -806,13 +738,9 @@ public class AnimalLiveClient : MonoBehaviour
 
         microphoneClip =
             Microphone.Start(
-
                 microphoneDevice,
-
                 true,
-
                 microphoneBufferSeconds,
-
                 microphoneSampleRate
             );
 
@@ -827,8 +755,7 @@ public class AnimalLiveClient : MonoBehaviour
         }
 
 
-        microphoneActive =
-            true;
+        microphoneActive = true;
 
 
         lastMicrophonePosition =
@@ -837,8 +764,7 @@ public class AnimalLiveClient : MonoBehaviour
             );
 
 
-        sendTimer =
-            0f;
+        sendTimer = 0f;
     }
 
 
@@ -856,8 +782,7 @@ public class AnimalLiveClient : MonoBehaviour
         SendNewMicrophoneAudio();
 
 
-        microphoneActive =
-            false;
+        microphoneActive = false;
 
 
         if (
@@ -876,11 +801,8 @@ public class AnimalLiveClient : MonoBehaviour
         }
 
 
-        microphoneClip =
-            null;
-
-        microphoneDevice =
-            null;
+        microphoneClip = null;
+        microphoneDevice = null;
     }
 
 
@@ -891,8 +813,7 @@ public class AnimalLiveClient : MonoBehaviour
     private void SendNewMicrophoneAudio()
     {
         if (
-            microphoneClip == null
-            ||
+            microphoneClip == null ||
             string.IsNullOrEmpty(
                 microphoneDevice
             )
@@ -909,8 +830,7 @@ public class AnimalLiveClient : MonoBehaviour
 
 
         if (
-            currentPosition < 0
-            ||
+            currentPosition < 0 ||
             currentPosition ==
             lastMicrophonePosition
         )
@@ -922,10 +842,8 @@ public class AnimalLiveClient : MonoBehaviour
         int clipSamples =
             microphoneClip.samples;
 
-
         int channels =
             microphoneClip.channels;
-
 
         int sampleFrames;
 
@@ -969,7 +887,6 @@ public class AnimalLiveClient : MonoBehaviour
                 lastMicrophonePosition
             );
         }
-
         else
         {
             int firstFrames =
@@ -1041,7 +958,6 @@ public class AnimalLiveClient : MonoBehaviour
             mono =
                 samples;
         }
-
         else
         {
             mono =
@@ -1056,8 +972,7 @@ public class AnimalLiveClient : MonoBehaviour
                 frame++
             )
             {
-                float sum =
-                    0f;
+                float sum = 0f;
 
 
                 for (
@@ -1184,8 +1099,7 @@ public class AnimalLiveClient : MonoBehaviour
     )
     {
         if (
-            pcm == null
-            ||
+            pcm == null ||
             pcm.Length == 0
         )
         {
@@ -1238,8 +1152,7 @@ public class AnimalLiveClient : MonoBehaviour
     )
     {
         if (
-            socket == null
-            ||
+            socket == null ||
             socket.State !=
             WebSocketState.Open
         )
@@ -1249,10 +1162,9 @@ public class AnimalLiveClient : MonoBehaviour
 
 
         byte[] bytes =
-            Encoding.UTF8
-                .GetBytes(
-                    json
-                );
+            Encoding.UTF8.GetBytes(
+                json
+            );
 
 
         await sendLock.WaitAsync();
@@ -1261,35 +1173,24 @@ public class AnimalLiveClient : MonoBehaviour
         try
         {
             await socket.SendAsync(
-
                 new ArraySegment<byte>(
                     bytes
                 ),
-
                 WebSocketMessageType.Text,
-
                 true,
-
                 cancellation.Token
             );
         }
-
-        catch (
-            OperationCanceledException
-        )
+        catch (OperationCanceledException)
         {
         }
-
-        catch (
-            Exception exception
-        )
+        catch (Exception exception)
         {
             Debug.LogError(
                 "Live send failed: " +
                 exception.Message
             );
         }
-
         finally
         {
             sendLock.Release();
@@ -1324,9 +1225,7 @@ public class AnimalLiveClient : MonoBehaviour
                         pcm[i]
                         |
                         (
-                            pcm[
-                                i + 1
-                            ]
+                            pcm[i + 1]
                             << 8
                         )
                     );
@@ -1338,10 +1237,7 @@ public class AnimalLiveClient : MonoBehaviour
                 );
             }
         }
-
-        catch (
-            Exception exception
-        )
+        catch (Exception exception)
         {
             Debug.LogError(
                 "Could not decode Live audio: " +
@@ -1359,18 +1255,11 @@ public class AnimalLiveClient : MonoBehaviour
     {
         AudioClip streamClip =
             AudioClip.Create(
-
                 "GeminiLiveAudio",
-
-                outputSampleRate *
-                60,
-
+                outputSampleRate * 60,
                 1,
-
                 outputSampleRate,
-
                 true,
-
                 OnAudioRead
             );
 
@@ -1383,8 +1272,7 @@ public class AnimalLiveClient : MonoBehaviour
     private void CheckStreamingPlayback()
     {
         if (
-            streamingPlaybackStarted
-            ||
+            streamingPlaybackStarted ||
             audioSource == null
         )
         {
@@ -1408,9 +1296,7 @@ public class AnimalLiveClient : MonoBehaviour
                 true;
 
 
-            if (
-                !audioSource.isPlaying
-            )
+            if (!audioSource.isPlaying)
             {
                 audioSource.Play();
             }
@@ -1437,11 +1323,9 @@ public class AnimalLiveClient : MonoBehaviour
                 data[i] =
                     sample;
             }
-
             else
             {
-                data[i] =
-                    0f;
+                data[i] = 0f;
             }
         }
     }
@@ -1463,8 +1347,7 @@ public class AnimalLiveClient : MonoBehaviour
 
 
         if (
-            audioSource != null
-            &&
+            audioSource != null &&
             audioSource.isPlaying
         )
         {
@@ -1480,21 +1363,26 @@ public class AnimalLiveClient : MonoBehaviour
     public async void StopLiveConversation()
     {
         if (!liveSessionActive)
+        {
+            // Still make sure the ambience is restored.
+            forestAmbience?.EndListening();
             return;
+        }
 
 
-        pushToTalkHeld =
-            false;
+        pushToTalkHeld = false;
 
 
         StopMicrophone();
 
 
-        liveSessionActive =
-            false;
+        // Safety: never leave the forest ducked
+        // if the conversation is closed.
+        forestAmbience?.EndListening();
 
-        geminiReady =
-            false;
+
+        liveSessionActive = false;
+        geminiReady = false;
 
 
         ClearIncomingAudio();
@@ -1510,8 +1398,7 @@ public class AnimalLiveClient : MonoBehaviour
         try
         {
             if (
-                socket != null
-                &&
+                socket != null &&
                 socket.State ==
                 WebSocketState.Open
             )
@@ -1528,17 +1415,13 @@ public class AnimalLiveClient : MonoBehaviour
 
 
                 await socket.CloseAsync(
-
                     WebSocketCloseStatus
                         .NormalClosure,
-
                     "Conversation ended",
-
                     CancellationToken.None
                 );
             }
         }
-
         catch
         {
         }
@@ -1547,20 +1430,15 @@ public class AnimalLiveClient : MonoBehaviour
         if (cancellation != null)
         {
             cancellation.Cancel();
-
             cancellation.Dispose();
-
-            cancellation =
-                null;
+            cancellation = null;
         }
 
 
         if (socket != null)
         {
             socket.Dispose();
-
-            socket =
-                null;
+            socket = null;
         }
     }
 
@@ -1571,18 +1449,19 @@ public class AnimalLiveClient : MonoBehaviour
 
     private void CleanUpLiveState()
     {
-        pushToTalkHeld =
-            false;
+        pushToTalkHeld = false;
 
 
         StopMicrophone();
 
 
-        liveSessionActive =
-            false;
+        // Safety: restore normal ambience
+        // after connection errors too.
+        forestAmbience?.EndListening();
 
-        geminiReady =
-            false;
+
+        liveSessionActive = false;
+        geminiReady = false;
 
 
         ClearIncomingAudio();
@@ -1598,26 +1477,24 @@ public class AnimalLiveClient : MonoBehaviour
         if (cancellation != null)
         {
             cancellation.Cancel();
-
             cancellation.Dispose();
-
-            cancellation =
-                null;
+            cancellation = null;
         }
 
 
         if (socket != null)
         {
             socket.Dispose();
-
-            socket =
-                null;
+            socket = null;
         }
     }
 
 
     private void OnDestroy()
     {
+        forestAmbience?.EndListening();
+
+
         if (liveSessionActive)
         {
             StopLiveConversation();

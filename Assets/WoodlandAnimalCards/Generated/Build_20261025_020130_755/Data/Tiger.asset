@@ -16,7 +16,7 @@ MonoBehaviour:
   animalGroup: MAMMAL
   greeting: Hi! I'm a tiger. My stripes help me blend in as I move quietly through
     tall grass.
-  portrait: {fileID: 0}
+  portrait: {fileID: 3225629950540185153, guid: 1ea4626cd1beb4f0481d72116ad3616d, type: 3}
   foodAnswer: I'm a carnivore. In the wild I hunt animals such as deer and wild pigs.
   homeAnswer: Wild tigers live in parts of Asia, in habitats including forests, grasslands,
     and mangrove swamps.

@@ -16,7 +16,7 @@ MonoBehaviour:
   animalGroup: MAMMAL
   greeting: Hi! I'm a deer. My big ears help me listen for sounds while I explore
     the forest.
-  portrait: {fileID: 0}
+  portrait: {fileID: -2449844058664256442, guid: 1d4d66ca968e1466596871822f871848, type: 3}
   foodAnswer: I eat plants, including leaves, grasses, shoots, and twigs. My menu
     changes with the seasons.
   homeAnswer: Different deer live in forests, woodlands, grasslands, and other habitats.

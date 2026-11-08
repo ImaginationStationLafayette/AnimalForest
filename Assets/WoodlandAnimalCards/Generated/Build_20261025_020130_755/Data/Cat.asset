@@ -15,7 +15,7 @@ MonoBehaviour:
   species: Cat
   animalGroup: MAMMAL
   greeting: Hi! I'm a cat. I love exploring, climbing, and napping in sunny spots.
-  portrait: {fileID: 0}
+  portrait: {fileID: -7232521027535748977, guid: 3e47ef84a9a9341c4bd3a8817a770ba2, type: 3}
   foodAnswer: I'm a meat eater! Pet cats need food made especially for cats.
   homeAnswer: Many cats live with people. A safe home gives a pet cat places to rest,
     play, and explore.

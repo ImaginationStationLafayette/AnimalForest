@@ -16,7 +16,7 @@ MonoBehaviour:
   animalGroup: MAMMAL
   greeting: Hi! I'm a dog. I explore the world with my nose. There are so many interesting
     smells!
-  portrait: {fileID: 0}
+  portrait: {fileID: -3994744024693093290, guid: 9482c83cfd7924c93b8872aa404e8cd1, type: 3}
   foodAnswer: Pet dogs eat balanced dog food. Some foods that people eat are not
     safe for dogs.
   homeAnswer: Many dogs live with people. We need a safe home, exercise, and caring

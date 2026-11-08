@@ -16,7 +16,7 @@ MonoBehaviour:
   animalGroup: MAMMAL
   greeting: Hi! I'm a horse. I graze on grass and use my long legs to run across
     open spaces.
-  portrait: {fileID: 0}
+  portrait: {fileID: 7672759098259192623, guid: 9fa1c42e45d29463d9131fcef3067ba1, type: 3}
   foodAnswer: I mostly eat grass and hay. I'm a herbivore, which means I eat plants.
   homeAnswer: Horses often live in pastures, with shelter or stables. Wild horses
     live in open landscapes.

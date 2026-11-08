@@ -16,7 +16,7 @@ MonoBehaviour:
   animalGroup: BIRD
   greeting: Hi! I'm a chicken. I scratch the ground to find seeds, insects, and tasty
     things to eat.
-  portrait: {fileID: 0}
+  portrait: {fileID: 5336855417275088078, guid: f883a253376874da9a40f87b90c23812, type: 3}
   foodAnswer: I eat seeds, grains, plants, and small insects. I scratch the ground
     to find food.
   homeAnswer: Domestic chickens often live on farms or in backyard flocks, with shelter

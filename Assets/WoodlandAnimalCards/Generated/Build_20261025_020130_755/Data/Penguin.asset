@@ -16,7 +16,7 @@ MonoBehaviour:
   animalGroup: BIRD
   greeting: Hi! I'm a penguin. I use my flippers to swim and my feathers to keep
     warm.
-  portrait: {fileID: 0}
+  portrait: {fileID: -3289575033469672952, guid: efb2aef3b351d4b7c92ee552652bf4f8, type: 3}
   foodAnswer: I eat sea creatures such as fish, krill, and squid. My menu depends
     on my species.
   homeAnswer: Penguins live in the Southern Hemisphere. Some live in icy places,
